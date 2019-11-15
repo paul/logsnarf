@@ -1,17 +1,5 @@
 # frozen_string_literal: true
 
-# require "logsnarf/version"
-require "bundler/inline"
-
-gemfile do
-  source "https://rubygems.org"
-
-  gem "influxdb"
-  gem "dry-core"
-  gem "awesome_print"
-  gem "pry-byebug"
-end
-
 require "benchmark"
 
 require "ap"
