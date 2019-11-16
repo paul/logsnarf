@@ -4,10 +4,11 @@ source "https://rubygems.org"
 
 gem "aws-sdk-dynamodb"
 gem "dry-core"
+gem "http"
 gem "influxdb"
 gem "lru_redux"
-gem "http"
 
+gem "falcon"
 gem "sentry-raven"
 
 group :development do
