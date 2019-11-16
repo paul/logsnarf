@@ -1,0 +1,6 @@
+[Unit]
+Description=Logsnarf listen socket
+
+[Socket]
+ListenStream=443
+NoDelay=true
