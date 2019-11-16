@@ -5,15 +5,14 @@ After=syslog.target
 After=network.target
 
 [Service]
-RestartSec=2s
 Type=simple
-User=ec2-user
-Group=ec2-user
 WorkingDirectory=/home/ec2-user/src/logsnarf
 ExecStart=falcon serve
-Restart=always
 Environment=USER=ec2-user HOME=/home/ec2-user RACK_ENV=production
-NonBlocking=true
+User=ec2-user
+Group=ec2-user
+Restart=always
+RestartSec=2s
 
 [Install]
 WantedBy=multi-user.target
