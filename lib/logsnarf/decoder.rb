@@ -23,6 +23,10 @@ module Logsnarf
       test.call(log_data)
     end
 
+    def drain_id
+      log_data.hostname
+    end
+
     def line
       log_data.line
     end

@@ -8,32 +8,47 @@ require "dry/core/class_attributes"
 
 require_relative "logsnarf/parser"
 require_relative "logsnarf/decoder"
+require_relative "logsnarf/credentials"
+require_relative "logsnarf/influxdb"
 
 module Logsnarf
   class Error < StandardError; end
 
-  def self.parse(text)
-    metrics = []
-    time = Benchmark.measure do
+  class AuthError < Error; end
+
+  class Loader
+    def load(token, io)
+      creds = Logsnarf.credentials.get(token)
+      raise AuthError, token if creds.nil?
+
+      influx = ::InfluxDB::Client.new url: creds["influxdb_url"], async: true, time_precision: "us"
+
+      text = io.read
+      metrics = nil
+      Influxdb.instrument("load", lines: text.lines.size, bytes: text.bytes.size) do |payload|
+        payload.measure("parse") do
+          metrics = parse(text)
+        end
+
+        payload[:metrics] = metrics.size
+
+        payload.measure("write") do
+          metrics.each do |metric|
+            influx.write_point(metric.name, metric.data)
+          end
+        end
+      end
+    end
+
+    def parse(text)
+      metrics = []
       parser = Parser.new(text)
       parser.each_metric do |log_data|
         decoder = DECODERS.detect { |dec| dec.valid?(log_data) }&.new(log_data)
         metrics << decoder if decoder
       end
+      metrics
     end
-
-    influx = InfluxDB::Client.new url: "http://localhost:8086/logsnarf", async: true, time_precision: "us"
-
-    metrics.each do |metric|
-      # ap metric.line
-      # ap metric.name => metric.data
-      influx.write_point(metric.name, metric.data)
-    end
-
-    puts "Parsed %d lines (%d bytes)" % [text.lines.size, text.bytesize]
-    puts "Matched %d metrics" % metrics.size
-    puts "  user       system     total    (  real    )"
-    puts time
   end
 
   LogData = Struct.new(:line, :timestamp, :hostname, :appname, :procid, :msgid, :pairs, keyword_init: true)
@@ -88,17 +103,3 @@ module Logsnarf
                sample#memory-postgres]),
   ].freeze
 end
-
-if $0 == __FILE__
-  data = if ARGV[0] && File.exist?(ARGV[0])
-           File.read(ARGV[0])
-         else
-           DATA.read
-         end
-
-  Logsnarf.parse(data)
-end
-
-__END__
-377 <45>1 2018-12-28T23:56:51.765168+00:00 d.5b4a0754-9a18-467b-a2e9-04aa07e84268 heroku worker.1 - - source=worker.1 dyno=heroku.97268060.72e58892-0ea8-47af-9938-476288825e83 sample#memory_total=319.86MB sample#memory_rss=254.45MB sample#memory_cache=65.41MB sample#memory_swap=0.00MB sample#memory_pgpgin=111496pages sample#memory_pgpgout=29612pages sample#memory_quota=512.00MB
-253 <45>1 2018-12-18T21:10:16.557551+00:00 d.475fd4b7-03da-4e45-8c89-5d8ac5fff61d heroku sqs_worker.1 - - source=sqs_worker.1 dyno=heroku.97268060.fdbcc00f-e071-4c93-9de2-2e1ed2c2c24f sample#load_avg_1m=0.00 sample#load_avg_5m=0.00 sample#load_avg_15m=0.00
