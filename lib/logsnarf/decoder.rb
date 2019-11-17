@@ -66,7 +66,7 @@ module Logsnarf
       scalar = scanner.scan(NUMBER)
       unit = scanner.rest
 
-      [[key, unit.downcase].join("_"), (scalar.include?(".") ? Float(scalar) : Integer(scalar))]
+      [[key, unit.downcase].delete_if(&:empty?).join("_"), Float(scalar)]
     end
   end
 end

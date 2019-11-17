@@ -22,6 +22,7 @@ module Logsnarf
       raise AuthError, token if creds.nil?
 
       influx = ::InfluxDB::Client.new url: creds["influxdb_url"], async: true, time_precision: "us"
+      InfluxDB::Logging.log_level = Logger::DEBUG
 
       text = io.read
       metrics = nil
