@@ -1,18 +1,16 @@
 [Unit]
 Description=Logsnarf Web Server
-Requires=logsnarf.socket
 After=syslog.target
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/ec2-user/src/logsnarf
-ExecStart=falcon serve
+ExecStart=/home/ec2-user/src/logsnarf/bin/falcon serve --bind http://0.0.0.0:8000 --count 2
 Environment=USER=ec2-user HOME=/home/ec2-user RACK_ENV=production AWS_REGION=us-east-2
 User=ec2-user
 Group=ec2-user
 Restart=always
-RestartSec=2s
 
 [Install]
 WantedBy=multi-user.target
