@@ -1,15 +1,16 @@
 [Unit]
-Description=Logsnarf Web Server
+Description=Logsnarf App Server
+After=caddy2.target
 After=syslog.target
 After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/ec2-user/src/logsnarf
-ExecStart=/home/ec2-user/src/logsnarf/bin/falcon serve --bind http://0.0.0.0:8000 --count 2
-Environment=USER=ec2-user HOME=/home/ec2-user RACK_ENV=production AWS_REGION=us-east-2
-User=ec2-user
-Group=ec2-user
+WorkingDirectory=/var/www/logsnarf/releases/current
+ExecStart=/var/www/logsnarf/releases/current/bin/falcon serve --bind http://0.0.0.0:8000 --count 2
+EnvironmentFile=/var/www/logsnarf/production.env
+User=logsnarf
+Group=logsnarf
 Restart=always
 
 [Install]

@@ -20,7 +20,7 @@ module Logsnarf
       @http = HTTP
               .use(logging: { logger: Logger.new(STDOUT) })
               .persistent("https://us-west-2-1.aws.cloud2.influxdata.com")
-              .auth("Token tgYQYMi1g8qAfMH8Pyouq1VXMUYhE-vv_foqdc75i1w2lIgQsWx3o5DyAO4m74xddp_UyCpBqP5KJV0Nwdd5rg==")
+              .auth("Token #{ENV['INFLUXDB_TOKEN']}")
       @params = {
         org: "paul@acceptablyunlikely.com",
         bucket: "logsnarf",

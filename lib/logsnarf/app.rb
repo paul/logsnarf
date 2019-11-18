@@ -4,7 +4,7 @@ require "logsnarf"
 require "raven"
 
 Raven.configure do |config|
-  config.dsn = "https://48fff5c713d34c0792976ed30896764e@sentry.io/1823509"
+  config.dsn = ENV["SENTRY_DSN"]
 end
 
 module Logsnarf
@@ -26,10 +26,11 @@ module Logsnarf
     rescue Logsnarf::AuthError => e
       [403, [], "Who the hell are you?"]
     rescue StandardError => e
-      ap e
-      # Raven.capture_exception(e)
-
-      raise e unless ENV["RACK_ENV"] = "production"
+      if ENV["RACK_ENV"] == "production"
+        Raven.capture_exception(e)
+      else
+        raise e
+      end
 
       # Heroku logdrain stops sending if you return too many errors or take to
       # long, so don't raise anything

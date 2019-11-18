@@ -29,7 +29,11 @@ systemctl enable caddy2.service
 systemctl start caddy2.service
 
 # dnf install -y https://copr-be.cloud.fedoraproject.org/results/psadauskas/ruby-install/fedora-29-x86_64/01028211-ruby-install/ruby-install-0.7.0-1.noarch.rpm
-# dnf config-manager --enable PowerTools # libyaml-devel
+dnf install -y /tmp/templates/ruby-2.6.5-1.el8.x86_64.rpm
+gem install bundler
+
+dnf groupinstall -y "Development Tools"
+dnf install -y git
 
 cd /var/www
 
@@ -43,5 +47,5 @@ cd /var/www
 # SETUP_APP
 
 install -o root -g root -m 644 /tmp/templates/logsnarf.service /etc/systemd/system/logsnarf.service
-systemctl enable logsnarf.service
+# systemctl enable logsnarf.service
 

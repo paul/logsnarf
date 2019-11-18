@@ -21,12 +21,12 @@ module Logsnarf
       creds = Logsnarf.credentials.get(token)
       raise AuthError, token if creds.nil?
 
-      influx = ::InfluxDB::Client.new url: creds["influxdb_url"], async: true, time_precision: "us"
+      influx = ::InfluxDB::Client.new url: creds["influxdb_url"], async: true, time_precision: "u"
       InfluxDB::Logging.log_level = Logger::DEBUG
 
       text = io.read
       metrics = nil
-      Influxdb.instrument("load", lines: text.lines.size, bytes: text.bytes.size) do |payload|
+      Influxdb.instrument("load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do |payload|
         payload.measure("parse") do
           metrics = parse(text)
         end
