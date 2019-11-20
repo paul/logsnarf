@@ -6,9 +6,9 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/var/www/logsnarf/releases/current
-ExecStart=/var/www/logsnarf/releases/current/bin/falcon serve --bind http://0.0.0.0:8000 --count 2
-EnvironmentFile=/var/www/logsnarf/production.env
+WorkingDirectory=/var/www/logsnarf/current
+ExecStart=/var/www/logsnarf/current/bin/falcon serve --bind http://0.0.0.0:8000 --count 2
+EnvironmentFile=/var/www/logsnarf/current/config/production.env
 User=logsnarf
 Group=logsnarf
 Restart=always
