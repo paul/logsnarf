@@ -50,6 +50,7 @@ namespace :deploy do
       execute "systemctl daemon-reload"
       execute "systemctl enable logsnarf.service"
       execute "systemctl restart logsnarf.service"
+      execute "systemctl status logsnarf.service"
     end
   end
 end

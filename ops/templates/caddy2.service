@@ -9,15 +9,15 @@ Restart=on-abnormal
 
 ; Do not allow the process to be restarted in a tight loop. If the
 ; process fails to start, something critical needs to be fixed.
-StartLimitIntervalSec=14400
+; StartLimitIntervalSec=14400
 StartLimitBurst=10
 
 ; User and group the process will run as.
-User=caddy
-Group=caddy
+User=logsnarf
+Group=logsnarf
 
 ; Letsencrypt-issued certificates will be written to this directory.
-Environment=CADDYPATH=/etc/ssl/caddy
+Environment=CADDYPATH=/etc/ssl/caddy2
 
 ; Always set "-root" to something safe in case it gets forgotten in the Caddyfile.
 ExecStart=/usr/local/bin/caddy2 run --adapter caddyfile --config /etc/caddy2/Caddyfile
@@ -44,8 +44,8 @@ ProtectHome=true
 ProtectSystem=full
 ; … except /etc/ssl/caddy, because we want Letsencrypt-certificates there.
 ;   This merely retains r/w access rights, it does not add any new. Must still be writable on the host!
-ReadWritePaths=/etc/ssl/caddy
-ReadWriteDirectories=/etc/ssl/caddy
+; ReadWritePaths=/etc/ssl/caddy
+ReadWriteDirectories=/etc/ssl/caddy2
 
 ; The following additional security directives only work with systemd v229 or later.
 ; They further restrict privileges that can be gained by caddy. Uncomment if you like.

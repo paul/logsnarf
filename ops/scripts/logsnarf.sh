@@ -9,12 +9,12 @@ yum groupinstall -y "Development Tools"
 yum install -y git wget
 
 wget -q https://github.com/caddyserver/caddy/releases/download/v2.0.0-beta9/caddy2_beta9_linux_amd64
-install -o root -g root -m 755 -v caddy2_beta9_linux_amd64 /usr/local/bin/caddy
+install -o root -g root -m 755 -v caddy2_beta9_linux_amd64 /usr/local/bin/caddy2
 
-sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy
+setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy2
 
-sudo groupadd logsnarf
-sudo useradd \
+groupadd logsnarf
+useradd \
   -g logsnarf --no-user-group \
   --home-dir /var/www --no-create-home \
   --shell /usr/sbin/nologin \
@@ -22,7 +22,7 @@ sudo useradd \
 
 install -o root -g root -m 644 -v -D /tmp/templates/Caddyfile /etc/caddy2/Caddyfile
 install -o root -g logsnarf -m 0770 -v -d /etc/ssl/caddy2
-install -o logsnarf -g logsnarf -m 555 -v -D -d /var/www
+install -o logsnarf -g logsnarf -m 755 -v -D -d /var/www
 
 install -o root -g root -m 644 /tmp/templates/caddy2.service /etc/systemd/system/caddy2.service
 
