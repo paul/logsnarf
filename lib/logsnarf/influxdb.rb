@@ -70,7 +70,7 @@ module Logsnarf
           url = URI::HTTPS.build(host: "us-west-2-1.aws.cloud2.influxdata.com", path: "/api/v2/write", query: query)
           resp = @internet.post(url.to_s, @headers, body)
 
-          raise resp unless resp.status.in?(200..299)
+          raise resp unless (200..299).cover?(resp.status)
         end
       end
     end
