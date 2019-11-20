@@ -47,7 +47,7 @@ module Logsnarf
           @measurements.concat(msmts)
         end
 
-        send if time_to_send?.tap { |r| ap time_to_send?: r }
+        send if time_to_send?
       end
 
       def time_to_send?
