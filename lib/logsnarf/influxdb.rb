@@ -17,19 +17,62 @@ module Logsnarf
     end
 
     def initialize
-      @http = HTTP
-              .use(logging: { logger: Logger.new(STDOUT) })
-              .persistent("https://us-west-2-1.aws.cloud2.influxdata.com")
-              .auth("Token #{ENV['INFLUXDB_TOKEN']}")
-      @params = {
-        org: "paul@acceptablyunlikely.com",
-        bucket: "logsnarf",
-        precision: "us"
-      }
+      @writer = Writer.new
     end
 
     def write_point(msmt)
-      @http.post("/api/v2/write", params: @params, body: msmt.to_s).flush
+      @writer.push(Array(msmt))
+      # @http.post("/api/v2/write", params: @params, body: msmt.to_s).flush
+    end
+
+    require "async"
+    require "async/http/internet"
+    class Writer
+      MAX_QUEUE_SIZE = 1000
+      MAX_DELAY = 5
+
+      def initialize
+        @internet = Async::HTTP::Internet.new
+        @headers = [["Authorization", "Token #{ENV['INFLUXDB_TOKEN']}"]]
+
+        @measurements = []
+        @last_send = Time.now
+        @semaphore = Async::Semaphore.new
+
+        at_exit { send }
+      end
+
+      def push(msmts)
+        @semaphore.acquire do
+          @measurements.concat(msmts)
+        end
+
+        send if time_to_send?.tap { |r| ap time_to_send?: r }
+      end
+
+      def time_to_send?
+        !@measurements.empty? &&
+          @measurements.length > MAX_QUEUE_SIZE || (Time.now - @last_send) > MAX_DELAY
+      end
+
+      def send
+        msmts_to_send = nil
+        @semaphore.acquire do
+          msmts_to_send = @measurements.dup
+          @measurements = []
+          @last_send = Time.now
+        end
+
+        Async do
+          puts "sending #{msmts_to_send.size} measurements"
+          body = msmts_to_send.map(&:to_s).join("\n")
+          query = URI.encode_www_form(org: "paul@acceptablyunlikely.com", bucket: "logsnarf", precision: "us")
+          url = URI::HTTPS.build(host: "us-west-2-1.aws.cloud2.influxdata.com", path: "/api/v2/write", query: query)
+          resp = @internet.post(url.to_s, @headers, body)
+
+          raise resp unless resp.status.in?(200..299)
+        end
+      end
     end
 
     class Measurement
