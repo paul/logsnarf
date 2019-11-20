@@ -11,8 +11,8 @@ gem "lru_redux"
 gem "falcon"
 gem "sentry-raven"
 
+gem "awesome_print"
 group :development do
-  gem "awesome_print"
   gem "pry-byebug"
 
   gem "bundler", "~> 2.0"
