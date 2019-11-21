@@ -28,9 +28,8 @@ module Logsnarf
                .map(&:to_s)
                .join("\n")
 
-        query = URI.encode_www_form(org: "paul@acceptablyunlikely.com", bucket: "logsnarf", precision: "us")
-        url = URI::HTTP.build(host: ENV["INFLUXDB_HOST"], port: "9999", path: "/api/v2/write", query: query)
-        headers = [["Authorization", "Token #{ENV['INFLUXDB_TOKEN']}"]]
+        url = ENV["INSTRUMENTATION_URL"]
+        headers = [["Authorization", "Token #{ENV['INSTRUMENTATION_TOKEN']}"]]
 
         resp = @writer.post(url.to_s, headers, body)
 

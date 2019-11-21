@@ -7,7 +7,7 @@ module Logsnarf
 
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
-        @logger, @instrumenter = logger, instrumenter
+        @logger, @instrumenter = logger.with(name: "influxdb_v1"), instrumenter
       end
 
       def write_metric(metric)
