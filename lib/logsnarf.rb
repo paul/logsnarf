@@ -8,49 +8,16 @@ require "dry/core/class_attributes"
 
 require_relative "logsnarf/parser"
 require_relative "logsnarf/decoder"
+require_relative "logsnarf/loader"
+require_relative "logsnarf/writer"
+require_relative "logsnarf/adapter"
+require_relative "logsnarf/instrumenter"
 require_relative "logsnarf/credentials"
-require_relative "logsnarf/influxdb"
 
 module Logsnarf
   class Error < StandardError; end
 
   class AuthError < Error; end
-
-  class Loader
-    def load(token, io)
-      creds = Logsnarf.credentials.get(token)
-      raise AuthError, token if creds.nil?
-
-      influx = ::InfluxDB::Client.new url: creds["influxdb_url"], async: true, time_precision: "u"
-      InfluxDB::Logging.log_level = Logger::DEBUG
-
-      text = io.read
-      metrics = nil
-      Influxdb.instrument("load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do |payload|
-        payload.measure("parse") do
-          metrics = parse(text)
-        end
-
-        payload[:metrics] = metrics.size
-
-        payload.measure("write") do
-          metrics.each do |metric|
-            influx.write_point(metric.name, metric.data)
-          end
-        end
-      end
-    end
-
-    def parse(text)
-      metrics = []
-      parser = Parser.new(text)
-      parser.each_metric do |log_data|
-        decoder = DECODERS.detect { |dec| dec.valid?(log_data) }&.new(log_data)
-        metrics << decoder if decoder
-      end
-      metrics
-    end
-  end
 
   LogData = Struct.new(:line, :timestamp, :hostname, :appname, :procid, :msgid, :pairs, keyword_init: true)
 

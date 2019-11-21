@@ -18,6 +18,7 @@ group :development do
   gem "bundler", "~> 2.0"
   gem "rake", "~> 10.0"
   gem "rspec", "~> 3.0"
+  gem "async-rspec"
 
   gem "bcrypt_pbkdf"
   gem "capistrano", require: false

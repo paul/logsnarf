@@ -26,6 +26,10 @@ GEM
       protocol-http2 (~> 0.9.0)
     async-io (1.27.0)
       async (~> 1.14)
+    async-rspec (1.13.0)
+      rspec (~> 3.0)
+      rspec-files (~> 1.0)
+      rspec-memory (~> 1.0)
     awesome_print (1.8.0)
     aws-eventstream (1.0.3)
     aws-partitions (1.240.0)
@@ -125,6 +129,10 @@ GEM
     rspec-expectations (3.9.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
+    rspec-files (1.0.2)
+      rspec (~> 3.0)
+    rspec-memory (1.0.1)
+      rspec (~> 3.0)
     rspec-mocks (3.9.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
@@ -146,6 +154,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  async-rspec
   awesome_print
   aws-sdk-dynamodb
   bcrypt_pbkdf

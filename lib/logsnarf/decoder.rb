@@ -39,7 +39,7 @@ module Logsnarf
       {
         tags: tags,
         values: values,
-        timestamp: (Time.iso8601(log_data.timestamp).to_f * 1_000_000).to_i
+        timestamp: timestamp
       }
     end
 
@@ -51,6 +51,10 @@ module Logsnarf
       log_data.pairs.slice(*self.class.value_fields)
               .transform_keys { |k| transform_key(k) }
               .each_with_object({}) { |(k, v), hsh| nk, nv = *move_unit_to_key(k, v); hsh[nk] = nv }
+    end
+
+    def timestamp
+      Time.iso8601(log_data.timestamp)
     end
 
     private

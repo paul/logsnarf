@@ -6,29 +6,45 @@ require "singleton"
 
 module Logsnarf
   class Credentials
-    include Singleton
+    class Store
+      def initialize(logger:)
+        @cache = LruRedux::TTL::ThreadSafeCache.new(1000, 15 * 60)
+        @dynamodb = Aws::DynamoDB::Client.new(logger: logger)
+        @gets = @misses = 0
+      end
 
-    def initialize
-      @cache = LruRedux::TTL::ThreadSafeCache.new(1000, 15 * 60)
-      @dynamodb = Aws::DynamoDB::Client.new(log_level: :debug, logger: Logger.new(STDOUT))
-      @gets = @misses = 0
-    end
+      def get(token)
+        @gets += 1
+        @cache.getset(token) do
+          @misses += 1
+          config = @dynamodb
+                   .get_item(table_name: "logsnarf_config", key: { token: token })
+                   .item
+          Credentials.new(config) if config
+        end
+      end
+      alias_method :[], :get
+      alias_method :fetch, :get
 
-    def get(token)
-      @gets += 1
-      @cache.getset(token) do
-        @misses += 1
-        @dynamodb.get_item(table_name: "logsnarf_config", key: { token: token }).item&.dig("credentials")
+      def stats
+        { gets: @gets, misses: @misses }
       end
     end
 
-    def stats
-      { gets: @gets, misses: @misses }
-    end
-  end
+    extend Forwardable
 
-  @@credentials = Credentials.instance
-  def self.credentials
-    @@credentials
+    delegate [:[], :dig] => :@config
+
+    def initialize(config)
+      @config = config
+    end
+
+    def type
+      @config.dig("credentials", "type")
+    end
+
+    def name
+      @config["name"]
+    end
   end
 end

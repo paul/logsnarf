@@ -9,9 +9,14 @@ end
 
 module Logsnarf
   class App
-    def initialize(app)
+    attr_reader :logsnarf
+
+    def initialize(app, logger: Async.logger)
       @app = app
-      @logsnarf = Logsnarf::Loader.new
+      adapter = Adapter::InfluxdbV2.new(ENV["INSTRUMENTER_URL"], logger: logger, instrumenter: nil)
+      instrumenter = Instrumenter.new(adapter: adapter)
+      credentials_store = Credentials::Store.new(logger: logger)
+      @logsnarf = Logsnarf::Loader.new(logger: logger, instrumenter: instrumenter, credentials_store: credentials_store)
     end
 
     def call(env)
