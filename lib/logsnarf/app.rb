@@ -32,6 +32,8 @@ module Logsnarf
       #   # Heroku logdrain stops sending if you return too many errors or take to
       #   # long, so don't raise anything
       #   [202, [], ""]
+    ensure
+      Aws.empty_connection_pools!
     end
   end
 end
