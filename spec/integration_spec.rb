@@ -29,13 +29,12 @@ RSpec.describe Logsnarf do
   end
 
   it "should work" do
+    # Console.logger.debug!
     task = reactor.async do |_task|
       resp = app.call(env)
       expect(resp).to eq [202, [], ""]
-      ap "flush"
       app.logsnarf.adapter_store.each { |_token, adapter| adapter.stop }
       app.logsnarf.instrumenter.adapter.stop
-      ap "done"
     end
 
     task.children.each(&:stop)
