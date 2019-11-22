@@ -3,11 +3,13 @@
 module Logsnarf
   module Adapter
     class InfluxdbV1
+      RequestError = Class.new(StandardError)
+
       attr_reader :logger, :instrumenter
 
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
-        @logger, @instrumenter = logger.with(name: "influxdb_v1"), instrumenter
+        @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['token']}"), instrumenter
       end
 
       def write_metric(metric)
@@ -40,7 +42,8 @@ module Logsnarf
 
         url = URI::HTTP.build(host: url.host, port: url.port, path: "/write", query: query)
 
-        @writer.post(url.to_s, headers, body)
+        resp = @writer.post(url.to_s, headers, body)
+        raise RequestError, resp unless (200..299).cover?(resp.status)
       end
 
       class Measurement
