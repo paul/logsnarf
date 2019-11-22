@@ -117,6 +117,9 @@ GEM
     pry-byebug (3.7.0)
       byebug (~> 11.0)
       pry (~> 0.10)
+    pry-doc (1.0.0)
+      pry (~> 0.11)
+      yard (~> 0.9.11)
     public_suffix (4.0.1)
     rack (2.0.7)
     rake (10.5.0)
@@ -149,6 +152,7 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.6)
+    yard (0.9.20)
 
 PLATFORMS
   ruby
@@ -168,7 +172,9 @@ DEPENDENCIES
   influxdb
   logsnarf!
   lru_redux
+  pry
   pry-byebug
+  pry-doc
   rake (~> 10.0)
   rspec (~> 3.0)
   sentry-raven

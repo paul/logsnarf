@@ -13,7 +13,9 @@ gem "sentry-raven"
 
 gem "awesome_print"
 group :development do
+  gem "pry"
   gem "pry-byebug"
+  gem "pry-doc"
 
   gem "bundler", "~> 2.0"
   gem "rake", "~> 10.0"
