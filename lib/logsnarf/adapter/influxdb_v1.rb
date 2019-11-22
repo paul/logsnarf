@@ -32,7 +32,7 @@ module Logsnarf
 
         query = URI.encode_www_form(
           db: url.path.split("/").last,
-          precision: "us"
+          precision: "u"
         )
 
         headers = []
