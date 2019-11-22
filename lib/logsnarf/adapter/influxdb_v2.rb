@@ -3,6 +3,8 @@
 module Logsnarf
   module Adapter
     class InfluxdbV2
+      RequestError = Class.new(StandardError)
+
       attr_reader :logger, :instrumenter
 
       def initialize(creds, logger:, instrumenter:)
