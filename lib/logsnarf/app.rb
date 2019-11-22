@@ -3,10 +3,6 @@
 require "logsnarf"
 require "raven"
 
-Raven.configure do |config|
-  config.dsn = ENV["SENTRY_DSN"]
-end
-
 module Logsnarf
   class App
     attr_reader :logsnarf
@@ -30,16 +26,12 @@ module Logsnarf
       end
     rescue Logsnarf::AuthError => e
       [403, [], "Who the hell are you?"]
-    rescue StandardError => e
-      if ENV["RACK_ENV"] == "production"
-        Raven.capture_exception(e)
-      else
-        raise e
-      end
+      # rescue StandardError => e
+      #   # raise e
 
-      # Heroku logdrain stops sending if you return too many errors or take to
-      # long, so don't raise anything
-      [202, [], ""]
+      #   # Heroku logdrain stops sending if you return too many errors or take to
+      #   # long, so don't raise anything
+      #   [202, [], ""]
     end
   end
 end
