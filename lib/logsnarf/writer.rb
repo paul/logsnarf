@@ -11,6 +11,8 @@ module Logsnarf
 
     def initialize(adapter:)
       @adapter = adapter
+      @logger = adapter.logger
+      logger.debug "Adapter initialized"
 
       @internet = Async::HTTP::Internet.new
       @metrics = []
@@ -18,8 +20,8 @@ module Logsnarf
       @semaphore = Async::Semaphore.new
       @task = Async::Task.current
 
-      at_exit { send }
-      setup_timer!
+      at_exit { stop }
+      # setup_timer!
     end
 
     def push(metrics)
@@ -27,7 +29,11 @@ module Logsnarf
         @metrics.concat(metrics)
       end
 
-      send if time_to_send?
+      if time_to_send?
+        send
+      else
+        start_timer
+      end
     end
 
     def time_to_send?
@@ -45,8 +51,10 @@ module Logsnarf
 
       return if metrics_to_send.empty?
 
+      disable_timer
+
       @task.async do
-        @adapter.logger.info "sending #{metrics_to_send.size} metrics"
+        logger.info "sending #{metrics_to_send.size} metrics"
         @adapter.publish(metrics_to_send)
       end
     end
@@ -56,20 +64,29 @@ module Logsnarf
     end
 
     def stop
+      logger.debug "Adapter stopping"
       send
     ensure
+      disable_timer
       @internet.close
     end
 
     private
 
-    def setup_timer!
-      @timer = @task.async do |task|
-        loop do
-          send if time_to_send?
-          task.sleep MAX_DELAY
-        end
+    attr_reader :logger
+
+    def start_timer
+      @timer ||= @task.async do |task|
+        logger.debug "timer started"
+        task.sleep MAX_DELAY
+        logger.debug "timer elapsed"
+        send if time_to_send?
       end
+    end
+
+    def disable_timer
+      logger.debug "timer stopped"
+      @timer&.stop
     end
 
     def now
