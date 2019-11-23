@@ -6,7 +6,7 @@ require "async/http/internet"
 module Logsnarf
   class Writer
     MAX_QUEUE_SIZE = 1000
-    MAX_DELAY = 5
+    MAX_DELAY = 30
 
     class RequestError < StandardError
       attr_reader :response, :request
