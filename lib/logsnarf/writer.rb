@@ -61,7 +61,6 @@ module Logsnarf
         end
 
         if !metrics_to_send.empty?
-
           logger.info "sending #{metrics_to_send.size} metrics"
           request = [@adapter.url, @adapter.headers, @adapter.encode(metrics_to_send)]
           logger.debug { " ==> #{request[0]} #{request[1].to_h.inspect}" }
@@ -70,14 +69,12 @@ module Logsnarf
           raise RequestError, response unless (200..299).cover?(response.status)
         end
       rescue StandardError => e
-        if e.is_a?(RequestError)
-          extra = {
-            request: request,
-            response: response,
-            creds: @adapter.creds,
-            response_body: e&.response&.body&.read
-          }
-        end
+        extra = {
+          request: request,
+          response: response,
+          creds: @adapter.creds,
+          response_body: response&.body&.read
+        }
         Raven.capture_exception(e, extra: extra || {})
         raise
       end
