@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "logsnarf"
-require "raven"
 
 module Logsnarf
   class App
@@ -16,10 +15,10 @@ module Logsnarf
     end
 
     def call(env)
-      _, endpoint, rest = *env["PATH_INFO"].split("/", 3)
+      _, endpoint, token = *env["PATH_INFO"].split("/", 3)
 
       if endpoint == "ingress"
-        @logsnarf.load(rest, env["rack.input"])
+        @logsnarf.load(token, env["rack.input"])
         [202, [], ""]
       else
         [404, [], ""]

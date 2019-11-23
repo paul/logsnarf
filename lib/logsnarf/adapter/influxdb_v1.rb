@@ -3,9 +3,19 @@
 module Logsnarf
   module Adapter
     class InfluxdbV1
-      RequestError = Class.new(StandardError)
+      class RequestError < StandardError
+        attr_reader :response, :request
 
-      attr_reader :logger, :instrumenter
+        def initialize(_msg = "failed", response:, request:)
+          @response, @request = response, request
+        end
+
+        def message
+          %{Request failed: #{response.status}\n#{response.inspect}}
+        end
+      end
+
+      attr_reader :logger, :instrumenter, :creds
 
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
@@ -40,10 +50,10 @@ module Logsnarf
         headers = []
         headers << ["Authorization", "Basic #{Base64.encode64(url.userinfo)}"] if url.userinfo
 
-        url = URI::HTTP.build(host: url.host, port: url.port, path: "/write", query: query)
+        url = URI::HTTP.build(host: url.host, port: url.port, path: "/write", query: query).to_s
 
-        resp = @writer.post(url.to_s, headers, body)
-        raise RequestError, resp unless (200..299).cover?(resp.status)
+        resp = @writer.post(url, headers, body)
+        raise RequestError, response: resp, request: { url: url, headers: headers, body: body } unless (200..299).cover?(resp.status)
       end
 
       class Measurement

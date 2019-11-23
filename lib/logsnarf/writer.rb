@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "raven"
 require "async"
 require "async/http/internet"
 module Logsnarf
@@ -56,6 +57,20 @@ module Logsnarf
       @task.async do
         logger.info "sending #{metrics_to_send.size} metrics"
         @adapter.publish(metrics_to_send)
+      rescue StandardError => e
+        extra = { creds: @adapter.creds }
+        if e.respond_to?(:response)
+          response = e.response
+          extra[:response] = {
+            status: response.status,
+            headers: response.headers.to_h,
+            body: response.body
+          }
+        end
+        extra[:request] = e.request if e.respond_to?(:request)
+
+        Raven.capture_exception(e, extra: extra)
+        raise
       end
     end
 
