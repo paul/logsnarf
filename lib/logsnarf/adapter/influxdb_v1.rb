@@ -50,7 +50,9 @@ module Logsnarf
         headers = []
         headers << ["Authorization", "Basic #{Base64.encode64(url.userinfo)}"] if url.userinfo
 
-        url = URI::HTTP.build(host: url.host, port: url.port, path: "/write", query: query).to_s
+        builder = (url.scheme == "https" ? URI::HTTPS : URI::HTTP)
+
+        url = builder.build(host: url.host, port: url.port, path: "/write", query: query).to_s
 
         resp = @writer.post(url, headers, body)
         raise RequestError, response: resp, request: { url: url, headers: headers, body: body } unless (200..299).cover?(resp.status)
