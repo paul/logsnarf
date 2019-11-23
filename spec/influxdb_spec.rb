@@ -14,7 +14,7 @@ RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
   let(:creds) do
     {
       "credentials" => {
-        "influxdb_url" => "http://localhost:8086/logsnarf",
+        "influxdb_url" => "https://localhost:8087/logsnarf",
         "type" => "influxdb_v1"
       },
       "name" => "logsnarf local testing",
@@ -36,7 +36,8 @@ RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
   it "should work" do
     Console.logger.debug!
     task = reactor.async do |_task|
-      adapter.write_metric(metrics)
+      adapter.write_metrics(metrics)
+      adapter.stop
     end
     task.wait
   end

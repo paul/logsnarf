@@ -3,7 +3,7 @@
 require "benchmark"
 
 require "ap"
-require "influxdb"
+require "raven"
 require "dry/core/class_attributes"
 
 require_relative "logsnarf/parser"

@@ -10,14 +10,23 @@ module Logsnarf
 
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
-        @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['token']}"), instrumenter
+        @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['name']}"), instrumenter
         @uri = URI.parse(@creds.dig("credentials", "influxdb_url"))
+        @internet ||= Async::HTTP::Internet.new
+        at_exit { stop }
       end
 
-      def write_metric(metric)
-        @internet ||= Async::HTTP::Internet.new
-        Async do
-          body = encode(metric)
+      def stop
+        logger.debug "Adapter stopping"
+        @task.wait
+        @internet.close
+      end
+
+      def write_metrics(metrics)
+        metrics = Array(metrics)
+        @task = Async do
+          logger.debug "sending #{metrics.size} metrics"
+          body = encode(metrics)
           response = @internet.post(url, headers, body)
           raise RequestError, response unless (200..299).cover?(response.status)
         rescue StandardError => e
@@ -52,8 +61,10 @@ module Logsnarf
         end
       end
 
-      def encode(metric)
-        Logsnarf::Adapter::InfluxdbV1::Measurement.new(metric).to_s
+      def encode(metrics)
+        metrics
+          .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m).to_s }
+          .join("\n")
       end
 
     private

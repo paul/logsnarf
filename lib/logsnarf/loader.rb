@@ -27,9 +27,7 @@ module Logsnarf
 
         payload[:metrics] = metrics.size
 
-        metrics.each do |metric|
-          adapter.write_metric(metric)
-        end
+        adapter.write_metrics(metrics)
       end
     end
 

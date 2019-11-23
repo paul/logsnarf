@@ -19,7 +19,7 @@ module Logsnarf
 
       if endpoint == "ingress"
         @logsnarf.load(token, env["rack.input"])
-        [202, [], ""]
+        [204, [], ""]
       else
         [404, [], ""]
       end
