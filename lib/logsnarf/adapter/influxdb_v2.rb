@@ -16,12 +16,12 @@ module Logsnarf
 
       def write_metric(metric)
         Async do
-          request = [url, headers, encode(metric)]
-          response = @internet.post(*request)
+          body = encode(metric)
+          response = @internet.post(url, headers, Async::HTTP::Body::Buffered.wrap(body))
           raise RequestError, response unless (200..299).cover?(response.status)
         rescue StandardError => e
           extra = {
-            request: request,
+            request: { url: url, headers: headers, body: body },
             response: response,
             creds: @creds,
             response_body: response&.read
