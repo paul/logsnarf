@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "async"
+require "async/http/internet"
 module Logsnarf
   module Adapter
     class InfluxdbV1
@@ -9,14 +11,24 @@ module Logsnarf
         @creds = creds
         @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['token']}"), instrumenter
         @uri = URI.parse(@creds.dig("credentials", "influxdb_url"))
+        @internet = Async::HTTP::Internet.new
       end
 
       def write_metric(metric)
-        writer.push([metric].flatten)
-      end
-
-      def stop
-        writer.stop
+        Async do
+          request = [url, headers, encode(metric)]
+          response = @internet.post(*request)
+          raise RequestError, response unless (200..299).cover?(response.status)
+        rescue StandardError => e
+          extra = {
+            request: request,
+            response: response,
+            creds: @adapter.creds,
+            response_body: response&.read
+          }
+          Raven.capture_exception(e, extra: extra || {})
+          raise
+        end
       end
 
       def url
@@ -39,18 +51,11 @@ module Logsnarf
         end
       end
 
-      def encode(metrics)
-        metrics
-          .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m) }
-          .map(&:to_s)
-          .join("\n")
+      def encode(metric)
+        Logsnarf::Adapter::InfluxdbV1::Measurement.new(metric).to_s
       end
 
     private
-
-      def writer
-        @writer ||= Writer.new(adapter: self)
-      end
 
       class Measurement
         def initialize(metric)

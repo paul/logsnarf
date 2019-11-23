@@ -16,6 +16,7 @@ module Logsnarf
     end
 
     require "benchmark"
+    require "forwardable"
     class Event
       extend Forwardable
 
