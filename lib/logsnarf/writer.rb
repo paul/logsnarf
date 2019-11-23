@@ -64,7 +64,7 @@ module Logsnarf
           extra[:response] = {
             status: response.status,
             headers: response.headers.to_h,
-            body: response.body
+            body: response.body&.read
           }
         end
         extra[:request] = e.request if e.respond_to?(:request)
