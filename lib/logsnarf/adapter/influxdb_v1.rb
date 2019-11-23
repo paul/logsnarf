@@ -12,13 +12,13 @@ module Logsnarf
         @creds = creds
         @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['token']}"), instrumenter
         @uri = URI.parse(@creds.dig("credentials", "influxdb_url"))
-        @internet = Async::HTTP::Internet.new
       end
 
       def write_metric(metric)
+        @internet ||= Async::HTTP::Internet.new
         Async do
           body = encode(metric)
-          response = @internet.post(url, headers, Async::HTTP::Body::Buffered.wrap(body))
+          response = @internet.post(url, headers, body)
           raise RequestError, response unless (200..299).cover?(response.status)
         rescue StandardError => e
           extra = {

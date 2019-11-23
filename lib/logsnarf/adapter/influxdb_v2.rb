@@ -11,10 +11,10 @@ module Logsnarf
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
         @logger, @instrumenter = logger.with(name: "influxdb_v2"), instrumenter
-        @internet = Async::HTTP::Internet.new
       end
 
       def write_metric(metric)
+        @internet ||= Async::HTTP::Internet.new
         Async do
           body = encode(metric)
           response = @internet.post(url, headers, Async::HTTP::Body::Buffered.wrap(body))
