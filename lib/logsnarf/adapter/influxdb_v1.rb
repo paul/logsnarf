@@ -6,6 +6,17 @@ require "async/http/internet"
 module Logsnarf
   module Adapter
     class InfluxdbV1
+      class RequestError < StandardError
+        attr_reader :response, :request
+
+        def initialize(response)
+          @response = response
+        end
+
+        def message
+          %{Request failed: #{response.status}\n#{response.body&.read}}
+        end
+      end
       attr_reader :logger, :instrumenter, :creds
 
       def initialize(creds, logger:, instrumenter:)
