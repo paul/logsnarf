@@ -2,6 +2,7 @@
 
 require "async"
 require "async/http/internet"
+
 module Logsnarf
   module Adapter
     class InfluxdbV1
@@ -23,7 +24,7 @@ module Logsnarf
           extra = {
             request: request,
             response: response,
-            creds: @adapter.creds,
+            creds: @creds,
             response_body: response&.read
           }
           Raven.capture_exception(e, extra: extra || {})
