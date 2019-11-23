@@ -8,7 +8,17 @@ module Logsnarf
     MAX_QUEUE_SIZE = 1000
     MAX_DELAY = 5
 
-    RequestError = Class.new(StandardError)
+    class RequestError < StandardError
+      attr_reader :response, :request
+
+      def initialize(response)
+        @response = response
+      end
+
+      def message
+        %{Request failed: #{response.status}\n#{response.body&.read}}
+      end
+    end
 
     def initialize(adapter:)
       @adapter = adapter
@@ -19,10 +29,8 @@ module Logsnarf
       @metrics = []
       @last_send = now
       @semaphore = Async::Semaphore.new
-      @task = Async::Task.current
 
       at_exit { stop }
-      # setup_timer!
     end
 
     def push(metrics)
@@ -43,44 +51,41 @@ module Logsnarf
     end
 
     def send
-      metrics_to_send = nil
-      @semaphore.acquire do
-        metrics_to_send = @metrics.dup
-        @metrics = []
-        @last_send = now
-      end
+      Async do
+        metrics_to_send = nil
+        disable_timer
+        @semaphore.acquire do
+          metrics_to_send = @metrics.dup
+          @metrics = []
+          @last_send = now
+        end
 
-      return if metrics_to_send.empty?
+        if !metrics_to_send.empty?
 
-      disable_timer
-
-      @task.async do
-        logger.info "sending #{metrics_to_send.size} metrics"
-        @adapter.publish(metrics_to_send)
+          logger.info "sending #{metrics_to_send.size} metrics"
+          request = [@adapter.url, @adapter.headers, @adapter.encode(metrics_to_send)]
+          logger.debug { " ==> #{request[0]} #{request[1].to_h.inspect}" }
+          response = @internet.post(*request)
+          logger.debug { " <== #{response.status} #{response.headers.to_h}" }
+          raise RequestError, response unless (200..299).cover?(response.status)
+        end
       rescue StandardError => e
-        extra = { creds: @adapter.creds }
-        if e.respond_to?(:response)
-          response = e.response
-          extra[:response] = {
-            status: response.status,
-            headers: response.headers.to_h,
-            body: response.body&.read
+        if e.is_a?(RequestError)
+          extra = {
+            request: request,
+            response: response,
+            creds: @adapter.creds,
+            response_body: e&.response&.body&.read
           }
         end
-        extra[:request] = e.request if e.respond_to?(:request)
-
-        Raven.capture_exception(e, extra: extra)
+        Raven.capture_exception(e, extra: extra || {})
         raise
       end
     end
 
-    def post(url, headers, body)
-      @internet.post(url, headers, body)
-    end
-
     def stop
       logger.debug "Adapter stopping"
-      send
+      send.wait
     ensure
       disable_timer
       @internet.close
@@ -91,7 +96,7 @@ module Logsnarf
     attr_reader :logger
 
     def start_timer
-      @timer ||= @task.async do |task|
+      @timer ||= Async do |task|
         logger.debug "timer started"
         task.sleep MAX_DELAY
         logger.debug "timer elapsed"

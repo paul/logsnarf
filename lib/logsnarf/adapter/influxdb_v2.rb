@@ -3,8 +3,6 @@
 module Logsnarf
   module Adapter
     class InfluxdbV2
-      RequestError = Class.new(StandardError)
-
       attr_reader :logger, :instrumenter
 
       def initialize(creds, logger:, instrumenter:)
@@ -24,18 +22,19 @@ module Logsnarf
         writer.stop
       end
 
-      def publish(metrics)
-        body = metrics
-               .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m) }
-               .map(&:to_s)
-               .join("\n")
+      def url
+        ENV["INSTRUMENTATION_URL"]
+      end
 
-        url = ENV["INSTRUMENTATION_URL"]
-        headers = [["Authorization", "Token #{ENV['INSTRUMENTATION_TOKEN']}"]]
+      def headers
+        [["Authorization", "Token #{ENV['INSTRUMENTATION_TOKEN']}"]]
+      end
 
-        resp = @writer.post(url.to_s, headers, body)
-
-        raise RequestError, resp unless (200..299).cover?(resp.status)
+      def encode(metrics)
+        metrics
+          .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m) }
+          .map(&:to_s)
+          .join("\n")
       end
     end
   end

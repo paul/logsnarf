@@ -3,59 +3,53 @@
 module Logsnarf
   module Adapter
     class InfluxdbV1
-      class RequestError < StandardError
-        attr_reader :response, :request
-
-        def initialize(_msg = "failed", response:, request:)
-          @response, @request = response, request
-        end
-
-        def message
-          %{Request failed: #{response.status}\n#{response.inspect}}
-        end
-      end
-
       attr_reader :logger, :instrumenter, :creds
 
       def initialize(creds, logger:, instrumenter:)
         @creds = creds
         @logger, @instrumenter = logger.with(name: "influxdb_v1 #{creds['token']}"), instrumenter
+        @uri = URI.parse(@creds.dig("credentials", "influxdb_url"))
       end
 
       def write_metric(metric)
         writer.push([metric].flatten)
       end
 
-      def writer
-        @writer ||= Writer.new(adapter: self)
-      end
-
       def stop
         writer.stop
       end
 
-      def publish(metrics)
-        body = metrics
-               .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m) }
-               .map(&:to_s)
-               .join("\n")
+      def url
+        @url ||= begin
+          query = URI.encode_www_form(
+            db: @uri.path.split("/").last,
+            precision: "u"
+          )
 
-        url = URI.parse(@creds.dig("credentials", "influxdb_url"))
+          builder = (@uri.scheme == "https" ? URI::HTTPS : URI::HTTP)
+          builder.build(host: @uri.host, port: @uri.port, path: "/write", query: query).to_s
+        end
+      end
 
-        query = URI.encode_www_form(
-          db: url.path.split("/").last,
-          precision: "u"
-        )
+      def headers
+        @headers ||= begin
+          headers = []
+          headers << ["Authorization", "Basic #{Base64.encode64(@uri.userinfo)}"] if @uri.userinfo
+          headers
+        end
+      end
 
-        headers = []
-        headers << ["Authorization", "Basic #{Base64.encode64(url.userinfo)}"] if url.userinfo
+      def encode(metrics)
+        metrics
+          .map { |m| Logsnarf::Adapter::InfluxdbV1::Measurement.new(m) }
+          .map(&:to_s)
+          .join("\n")
+      end
 
-        builder = (url.scheme == "https" ? URI::HTTPS : URI::HTTP)
+    private
 
-        url = builder.build(host: url.host, port: url.port, path: "/write", query: query).to_s
-
-        resp = @writer.post(url, headers, body)
-        raise RequestError, response: resp, request: { url: url, headers: headers, body: body } unless (200..299).cover?(resp.status)
+      def writer
+        @writer ||= Writer.new(adapter: self)
       end
 
       class Measurement
