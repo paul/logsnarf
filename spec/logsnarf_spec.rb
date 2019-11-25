@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 RSpec.describe Logsnarf do
   it "has a version number" do
     expect(Logsnarf::VERSION).not_to be nil
   end
 
-  it "does something useful" do
+  xit "does something useful" do
     expect(false).to eq(true)
   end
 end

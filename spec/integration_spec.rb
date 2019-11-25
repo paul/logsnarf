@@ -32,7 +32,7 @@ RSpec.describe Logsnarf do
     Console.logger.debug!
     task = reactor.async do |_task|
       resp = app.call(env)
-      expect(resp).to eq [202, [], ""]
+      expect(resp).to eq [204, [], ""]
     end
 
     task.children.each(&:stop)
