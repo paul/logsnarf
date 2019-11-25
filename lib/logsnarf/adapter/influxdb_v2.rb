@@ -3,6 +3,8 @@
 require "async"
 require "async/http/internet"
 
+require "logsnarf/encoders/influxdb"
+
 module Logsnarf
   module Adapter
     class InfluxdbV2
@@ -24,10 +26,11 @@ module Logsnarf
         @logger, @instrumenter = logger.with(name: "influxdb_v2"), instrumenter
       end
 
-      def write_metric(metric)
+      def write_metric(metrics)
+        metrics = Array(metrics)
         @internet ||= Async::HTTP::Internet.new
         Async do
-          body = encode(metric)
+          body = Encoders::Influxdb.new(metrics).call
           response = @internet.post(url, headers, Async::HTTP::Body::Buffered.wrap(body))
           raise RequestError, response unless (200..299).cover?(response.status)
         rescue StandardError => e
@@ -48,10 +51,6 @@ module Logsnarf
 
       def headers
         [["Authorization", "Token #{ENV['INSTRUMENTATION_TOKEN']}"]]
-      end
-
-      def encode(metric)
-        Logsnarf::Adapter::InfluxdbV1::Measurement.new(metric).to_s
       end
     end
   end
