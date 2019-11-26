@@ -40,16 +40,16 @@ module Logsnarf
         @task = Async do
           logger.debug "sending #{metrics.size} metrics"
           body = Encoders::Influxdb.new(metrics).call
-          response = @internet.post(url, headers, body)
+          Raven.extra_context(request: { url: url, headers: headers, body: body })
+          response = @internet.post(url, headers, Async::HTTP::Body::Buffered.wrap(body))
           raise RequestError, response unless (200..299).cover?(response.status)
         rescue StandardError => e
           extra = {
-            request: { url: url, headers: headers, body: body },
             response: response,
             creds: @creds,
             response_body: response&.read
           }
-          Raven.capture_exception(e, extra: extra || {})
+          Raven.capture_exception(e, extra: extra)
           raise
         end
       end
