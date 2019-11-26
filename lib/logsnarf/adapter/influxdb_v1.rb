@@ -70,7 +70,7 @@ module Logsnarf
       def headers
         @headers ||= begin
           headers = []
-          headers << ["Authorization", "Basic #{Base64.encode64(@uri.userinfo)}"] if @uri.userinfo
+          headers << ["Authorization", "Basic #{Base64.strict_encode64(@uri.userinfo)}"] if @uri.userinfo
           headers
         end
       end
