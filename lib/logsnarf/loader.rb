@@ -27,7 +27,7 @@ module Logsnarf
 
         payload[:metrics] = metrics.size
 
-        adapter.write_metrics(metrics)
+        adapter.write_metrics(metrics) unless metrics.empty?
       end
     end
 

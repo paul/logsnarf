@@ -47,7 +47,8 @@ module Logsnarf
           extra = {
             response: response,
             creds: @creds,
-            response_body: response&.read
+            response_body: response&.read,
+            exception: e.inspect
           }
           Raven.capture_exception(e, extra: extra)
           raise
