@@ -50,4 +50,13 @@ module Logsnarf
       end
     end
   end
+
+  class NullInstrumenter < Instrumenter
+    def initialize(adapter: nil); end
+
+    def instrument(name, payload = {}, &block)
+      event = Event.new(name, payload)
+      event.measure(&block)
+    end
+  end
 end

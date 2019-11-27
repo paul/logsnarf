@@ -9,7 +9,7 @@ module Logsnarf
     def initialize(app, logger: Async.logger)
       @app = app
       adapter = Adapter::InfluxdbV2.new(ENV["INSTRUMENTER_URL"], logger: logger, instrumenter: nil)
-      instrumenter = Instrumenter.new(adapter: adapter)
+      instrumenter = NullInstrumenter.new(adapter: adapter)
       credentials_store = Credentials::Store.new(logger: logger)
       @logsnarf = Logsnarf::Loader.new(logger: logger, instrumenter: instrumenter, credentials_store: credentials_store)
     end
