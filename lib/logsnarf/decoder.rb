@@ -2,20 +2,12 @@
 
 require "time"
 module Logsnarf
-  def self.Decoder(name, test, tag_fields, value_fields)
-    klass = Class.new(Decoder) do
-      name name
-      test test
-      tag_fields tag_fields
-      value_fields value_fields
-    end
+  Metric = Struct.new(:log_data, :name, :tags, :values, :timestamp, keyword_init: true)
 
-    Logsnarf.const_set(name.split("_").map(&:capitalize).join, klass)
-    klass
-  end
-
-  Decoder = Struct.new(:log_data) do
+  class Decoder
     extend Dry::Core::ClassAttributes
+
+    attr_reader :log_data
 
     defines :name, :test, :tag_fields, :value_fields
 
@@ -23,24 +15,18 @@ module Logsnarf
       test.call(log_data)
     end
 
-    def drain_id
-      log_data.hostname
+    def initialize(log_data)
+      @log_data = log_data
     end
 
-    def line
-      log_data.line
-    end
-
-    def name
-      self.class.name
-    end
-
-    def data
-      {
+    def call
+      Metric.new(
+        log_data: log_data,
+        name: self.class.name,
         tags: tags,
         values: values,
         timestamp: timestamp
-      }
+      )
     end
 
     def tags

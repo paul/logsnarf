@@ -36,7 +36,7 @@ module Logsnarf
       parser = Parser.new(text)
       parser.each_metric do |log_data|
         decoder = DECODERS.detect { |dec| dec.valid?(log_data) }&.new(log_data)
-        metrics << decoder if decoder
+        metrics << decoder.call if decoder
       end
       metrics
     end

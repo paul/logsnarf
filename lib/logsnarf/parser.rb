@@ -2,6 +2,8 @@
 
 require "strscan"
 module Logsnarf
+  LogData = Struct.new(:line, :timestamp, :hostname, :appname, :procid, :msgid, :pairs, keyword_init: true)
+
   class Parser
     NILVAL = "-"
     ASCII = "[\u{21}-\u{7e}]"
@@ -36,6 +38,12 @@ module Logsnarf
         yield result if result
       end
     end
+
+    def first_line
+      parse_line
+    end
+
+    private
 
     def parse_line
       line = scanner.rest.split("\n", 2).first

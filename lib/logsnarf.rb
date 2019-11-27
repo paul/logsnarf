@@ -18,7 +18,17 @@ module Logsnarf
 
   class AuthError < Error; end
 
-  LogData = Struct.new(:line, :timestamp, :hostname, :appname, :procid, :msgid, :pairs, keyword_init: true)
+  def self.Decoder(name, test, tag_fields, value_fields)
+    klass = Class.new(Decoder) do
+      name name
+      test test
+      tag_fields tag_fields
+      value_fields value_fields
+    end
+
+    Logsnarf::Decoder.const_set(name.split("_").map(&:capitalize).join, klass)
+    klass
+  end
 
   DECODERS = [
     Decoder("heroku_dyno_memory",
