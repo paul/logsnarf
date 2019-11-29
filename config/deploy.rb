@@ -40,6 +40,16 @@ set :local_user, "logsnarf"
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
 
+# set :sentry_host, 'https://my-sentry.mycorp.com' # https://sentry.io by default
+# set :sentry_api_token, '0123456789abcdef0123456789abcdef'
+set :sentry_organization, "scalar"   # fetch(:application) by default
+set :sentry_project,      "logsnarf" # fetch(:application) by default
+set :sentry_repo_integration, false
+# set :sentry_repo, 'my-org/my-proj' # computed from repo_url by default
+
+before "deploy:starting", "sentry:validate_config"
+after "deploy:published", "sentry:notice_deployment"
+
 append :linked_dirs, ".bundle"
 
 namespace :deploy do

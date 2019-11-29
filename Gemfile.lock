@@ -51,6 +51,8 @@ GEM
       sshkit (>= 1.9.0)
     capistrano-bundler (1.6.0)
       capistrano (~> 3.1)
+    capistrano-sentry (0.4.0)
+      capistrano (~> 3.1)
     coderay (1.1.2)
     concurrent-ruby (1.1.5)
     console (1.6.0)
@@ -189,6 +191,7 @@ DEPENDENCIES
   bundler (~> 2.0)
   capistrano
   capistrano-bundler
+  capistrano-sentry
   dry-core
   dry-events
   dry-monitor

@@ -30,6 +30,7 @@ group :development do
   gem "bcrypt_pbkdf"
   gem "capistrano", require: false
   gem "capistrano-bundler", require: false
+  gem "capistrano-sentry", require: false
   gem "ed25519"
 end
 
