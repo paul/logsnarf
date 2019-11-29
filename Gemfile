@@ -2,12 +2,18 @@
 
 source "https://rubygems.org"
 
-gem "aws-sdk-dynamodb"
 gem "dry-core"
+gem "dry-events"
+gem "dry-monitor"
+gem "dry-system"
+
+gem "aws-sdk-dynamodb"
 gem "lru_redux"
 
-gem "falcon"
 gem "async-http"
+
+gem "falcon"
+
 gem "sentry-raven"
 
 gem "awesome_print"

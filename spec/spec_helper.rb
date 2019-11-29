@@ -1,5 +1,9 @@
-require "bundler/setup"
+# frozen_string_literal: true
+
+require_relative "../system/boot"
 require "logsnarf"
+
+require "async/rspec"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

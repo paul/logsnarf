@@ -1,17 +1,12 @@
 # frozen_string_literal: true
 
-require "benchmark"
+# require "benchmark"
 
-require "ap"
-require "raven"
-require "dry/core/class_attributes"
-
-require_relative "logsnarf/parser"
-require_relative "logsnarf/decoder"
-require_relative "logsnarf/loader"
-require_relative "logsnarf/adapter"
-require_relative "logsnarf/instrumenter"
-require_relative "logsnarf/credentials"
+require "logsnarf/parser"
+require "logsnarf/decoder"
+require "logsnarf/loader"
+require "logsnarf/adapter"
+require "logsnarf/credentials"
 
 module Logsnarf
   class Error < StandardError; end

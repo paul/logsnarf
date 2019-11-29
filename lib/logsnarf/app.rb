@@ -4,14 +4,14 @@ require "logsnarf"
 
 module Logsnarf
   class App
+    include Import[:logger, :instrumenter]
+
     attr_reader :logsnarf
 
-    def initialize(app, logger: Async.logger)
-      @app = app
-      adapter = Adapter::InfluxdbV2.new(ENV["INSTRUMENTER_URL"], logger: logger, instrumenter: nil)
-      instrumenter = NullInstrumenter.new(adapter: adapter)
-      credentials_store = Credentials::Store.new(logger: logger)
-      @logsnarf = Logsnarf::Loader.new(logger: logger, instrumenter: instrumenter, credentials_store: credentials_store)
+    def initialize(**imports)
+      super
+      credentials_store = Credentials::Store.new
+      @logsnarf = Logsnarf::Loader.new(credentials_store: credentials_store)
     end
 
     def call(env)
@@ -25,12 +25,6 @@ module Logsnarf
       end
     rescue Logsnarf::AuthError => e
       [403, [], "Who the hell are you?"]
-      # rescue StandardError => e
-      #   # raise e
-
-      #   # Heroku logdrain stops sending if you return too many errors or take to
-      #   # long, so don't raise anything
-      #   [202, [], ""]
     ensure
       Aws.empty_connection_pools!
     end
