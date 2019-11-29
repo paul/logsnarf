@@ -17,10 +17,11 @@
     },
     {
       "type": "digitalocean",
+      "snapshot_name": "logsnarf-{{isotime}}",
       "api_token": "{{ user `digital_ocean_api_token` }}",
       "image": "centos-7-x64",
       "region": "nyc3",
-      "size": "1gb",
+      "size": "s-1vcpu-1gb",
       "ssh_username": "root"
     }
   ],
