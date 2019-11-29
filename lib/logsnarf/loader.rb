@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+require "import"
+
 module Logsnarf
   class Loader
-    attr_reader :logger, :instrumenter, :adapter_store
+    include Import[:logger, :instrumenter]
+    attr_reader :adapter_store
 
-    def initialize(logger:, instrumenter:, credentials_store:)
-      @logger, @instrumenter = logger, instrumenter
+    def initialize(credentials_store:, **imports)
+      super(**imports)
       @credentials_store = credentials_store
       @adapter_store = LruRedux::TTL::ThreadSafeCache.new(1000, 15 * 60)
     end
@@ -15,17 +18,13 @@ module Logsnarf
       raise AuthError, token if creds.nil?
 
       adapter = @adapter_store.getset(token) do
-        Adapter[creds.type].new(creds, logger: logger, instrumenter: instrumenter)
+        Adapter[creds.type].new(creds)
       end
 
       text = io.read
       metrics = nil
-      instrumenter.instrument("load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do |payload|
-        payload.measure("parse") do
-          metrics = parse(text)
-        end
-
-        payload[:metrics] = metrics.size
+      instrumenter.instrument("load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do
+        metrics = parse(text)
 
         adapter.write_metrics(metrics) unless metrics.empty?
       end

@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "async/rspec"
 
 RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
-  include_context Async::RSpec::Reactor
   let(:now) { Time.now }
   let(:data) { <<~TXT }
     245 <45>1 #{now.iso8601} d.475fd4b7-03da-4e45-8c89-5d8ac5fff61d heroku worker.1 - - source=worker.1 dyno=heroku.97268060.75eb7bb9-ab78-41be-9cc7-576eaad6dae7 sample#load_avg_1m=0.03 sample#load_avg_5m=0.04 sample#load_avg_15m=0.02
@@ -14,7 +12,7 @@ RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
   let(:creds) do
     {
       "credentials" => {
-        "influxdb_url" => "https://localhost:8087/logsnarf",
+        "influxdb_url" => "http://localhost:8086/logsnarf",
         "type" => "influxdb_v1"
       },
       "name" => "logsnarf local testing",
@@ -24,21 +22,12 @@ RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
   let(:adapter) { Logsnarf::Adapter::InfluxdbV1.new(creds, logger: Console.logger, instrumenter: nil) }
 
   let(:metrics) do
-    metrics = []
-    parser = Logsnarf::Parser.new(data)
-    parser.each_metric do |log_data|
-      decoder = Logsnarf::DECODERS.detect { |dec| dec.valid?(log_data) }&.new(log_data)
-      metrics << decoder if decoder
-    end
-    metrics
+    [
+      Logsnarf::Metric.new(log_data: data, name: "test_data", tags: { my: :tag }, values: { value: 1234 }, timestamp: now)
+    ]
   end
 
   it "should work" do
-    Console.logger.debug!
-    task = reactor.async do |_task|
-      adapter.write_metrics(metrics)
-      adapter.stop
-    end
-    task.wait
+    adapter.write_metrics(metrics)
   end
 end

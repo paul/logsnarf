@@ -7,7 +7,9 @@ require "singleton"
 module Logsnarf
   class Credentials
     class Store
-      def initialize(logger:)
+      include Import[:logger, :instrumenter]
+      def initialize(**imports)
+        super
         @cache = LruRedux::TTL::ThreadSafeCache.new(1000, 15 * 60)
         @dynamodb = Aws::DynamoDB::Client.new(logger: logger)
         @gets = @misses = 0
