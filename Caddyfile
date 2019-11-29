@@ -1,0 +1,6 @@
+
+localhost:8087 {
+  bind {$ADDRESS}
+  tls self_signed
+  proxy / :8086
+}
