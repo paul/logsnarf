@@ -27,7 +27,7 @@ install -o root -g root -m 644 -v -D /tmp/templates/Caddyfile /etc/caddy2/Caddyf
 install -o root -g logsnarf -m 0770 -v -d /etc/ssl/caddy2
 
 # Copy letsencrypt certs in place to bootstrap caddy. TODO store these in s3/consul/do somehow
-install -o logsnarf -g logsnarf -m 600 -v -D /tmp/templates/acme /var/www/.local/share/caddy/acme
+find /tmp/templates/acme -type f -exec install -o logsnarf -g logsnarf -m 600 -v -D "{}" "/var/www/.local/share/caddy/acme/{}" \;
 
 install -o root -g root -m 644 /tmp/templates/caddy2.service /etc/systemd/system/caddy2.service
 
@@ -52,6 +52,7 @@ else
   yum install -y https://github.com/feedforce/ruby-rpm/releases/download/2.6.5/ruby-2.6.5-1.el7.centos.x86_64.rpm
 fi
 
+gem install bundler
 gem update --system
 
 install -o root -g root -m 644 /tmp/templates/logsnarf.service /etc/systemd/system/logsnarf.service
