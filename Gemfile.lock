@@ -1,3 +1,14 @@
+GIT
+  remote: https://github.com/paul/dry-monitor.git
+  revision: f5c25964175413e14f5125fb8d9a85b861533ed7
+  branch: payload-enhancements
+  specs:
+    dry-monitor (0.3.1)
+      dry-configurable (~> 0.5)
+      dry-core (~> 0.4)
+      dry-equalizer (~> 0.2)
+      dry-events (~> 0.1)
+
 PATH
   remote: .
   specs:
@@ -77,11 +88,6 @@ GEM
       concurrent-ruby (~> 1.0)
       dry-core (~> 0.2)
       dry-equalizer (~> 0.2)
-    dry-monitor (0.3.1)
-      dry-configurable (~> 0.5)
-      dry-core (~> 0.4)
-      dry-equalizer (~> 0.2)
-      dry-events (~> 0.1)
     dry-struct (1.1.1)
       dry-core (~> 0.4, >= 0.4.3)
       dry-equalizer (~> 0.2)
@@ -194,7 +200,7 @@ DEPENDENCIES
   capistrano-sentry
   dry-core
   dry-events
-  dry-monitor
+  dry-monitor!
   dry-system
   ed25519
   falcon

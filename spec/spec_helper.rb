@@ -3,6 +3,9 @@
 require_relative "../system/boot"
 require "logsnarf"
 
+# require "dry/system/stubs"
+# Logsnarf::App.enable_stubs!
+
 require "async/rspec"
 
 RSpec.configure do |config|

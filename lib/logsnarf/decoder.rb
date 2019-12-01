@@ -2,7 +2,7 @@
 
 require "time"
 module Logsnarf
-  Metric = Struct.new(:log_data, :name, :tags, :values, :timestamp, keyword_init: true)
+  Metric = Struct.new(:name, :tags, :values, :timestamp, keyword_init: true)
 
   class Decoder
     extend Dry::Core::ClassAttributes
@@ -21,7 +21,6 @@ module Logsnarf
 
     def call
       Metric.new(
-        log_data: log_data,
         name: self.class.name,
         tags: tags,
         values: values,

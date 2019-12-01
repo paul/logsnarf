@@ -16,7 +16,8 @@ RSpec.describe Logsnarf::Loader do
       "credentials" => {
         "influxdb_url" => "http://localhost:8086/logsnarf",
         "type" => "influxdb_v1"
-      }
+      },
+      "name" => "test"
     }
   }
   let(:credentials_store) { { token => Logsnarf::Credentials.new(creds) } }

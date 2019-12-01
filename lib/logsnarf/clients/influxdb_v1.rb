@@ -1,16 +1,25 @@
 # frozen_string_literal: true
 
+require "import"
+
 module Logsnarf::Clients
   class InfluxdbV1
-    def initialize(url:, logger: Async.logger, notifier: Raven)
-      @url = url
-      @logger, @notifier = logger, notifier
-      @internet ||= Async::HTTP::Internet.new
-      at_exit { @internet.close }
+    include Import[:logger, :instrumenter, :exception_notifier, :http]
+    class RequestError < StandardError
+      attr_reader :response, :request
+
+      def initialize(response)
+        @response = response
+      end
+
+      def message
+        %{Request failed: #{response.status}\n#{response.body&.read}}
+      end
     end
 
-    def stop
-      @internet.close
+    def initialize(url:, **imports)
+      super(**imports)
+      @url = URI.parse(url)
     end
 
     # Expects array of Decoder<name, timestamp, tags: {}, values: {}>
@@ -18,19 +27,20 @@ module Logsnarf::Clients
       body = encode(metrics)
 
       Async do
-        logger.info "Writing %d metrics (%d bytes)" % [metrics.size, body.bytesize]
-        notifier.extra_context(request: { url: write_url, headers: headers, body: body })
-        response = @internet.post(write_url, headers, body)
-        raise RequestError, response unless (200..299).cover?(response.status)
-      rescue StandardError => e
-        notifier.capture_exception(e, extra: { response: response, body: response&.read })
-        raise
+        payload = { client: self.class.name, metrics: metrics, body: body }
+        instrumenter.instrument("client.write_metrics", payload) do |payload|
+          exception_notifier.extra_context(request: { url: write_url, headers: headers, body: body })
+          response = http.post(write_url, headers, body)
+          payload[:response] = response
+          raise RequestError, response unless (200..299).cover?(response.status)
+        rescue StandardError => e
+          exception_notifier.capture_exception(e, extra: { response: response, body: response&.read })
+          raise
+        end
       end
     end
 
     private
-
-    attr_reader :logger, :internet, :notifier
 
     def write_url
       @write_url ||= begin

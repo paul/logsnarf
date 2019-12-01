@@ -23,8 +23,9 @@ module Logsnarf
 
       text = io.read
       metrics = nil
-      instrumenter.instrument("load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do
+      instrumenter.instrument("loader.load", lines: text.lines.size, bytes: text.bytes.size, account: creds["name"]) do |payload|
         metrics = parse(text)
+        payload[:metrics] = metrics
 
         adapter.write_metrics(metrics) unless metrics.empty?
       end

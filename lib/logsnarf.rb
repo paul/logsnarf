@@ -8,6 +8,9 @@ require "logsnarf/loader"
 require "logsnarf/adapter"
 require "logsnarf/credentials"
 
+require "logsnarf/subscribers/log_subscriber"
+require "logsnarf/subscribers/influx_subscriber"
+
 module Logsnarf
   class Error < StandardError; end
 

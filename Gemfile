@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 gem "dry-core"
 gem "dry-events"
-gem "dry-monitor"
+gem "dry-monitor", github: "paul/dry-monitor", branch: "payload-enhancements"
 gem "dry-system"
 
 gem "aws-sdk-dynamodb"
