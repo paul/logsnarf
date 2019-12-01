@@ -7,7 +7,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/var/www/logsnarf/current
-ExecStart=/var/www/logsnarf/current/bin/falcon --verbose serve --bind http://0.0.0.0:8000
+ExecStart=/var/www/logsnarf/current/bin/falcon serve --bind http://0.0.0.0:8000
 EnvironmentFile=/var/www/logsnarf/current/ops/environments/production.env
 User=logsnarf
 Group=logsnarf
