@@ -7,7 +7,7 @@ Logsnarf::App.boot(:exception_notifier) do
   end
 
   settings do
-    key :environments, Types::Strict::Array.of(Types::Strict::Symbol).default(%i[production].freeze)
+    key :environments, Types::Strict::Array.of(Types::Strict::String).default(%w[production].freeze)
     key :environment,  Types::Strict::Symbol
     key :logger,       Types::Any
     key :sentry_dsn,   Types::Strict::String
