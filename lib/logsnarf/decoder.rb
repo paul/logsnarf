@@ -44,18 +44,20 @@ module Logsnarf
 
     private
 
+    SAMPLE_PREFIX = "sample#"
     def transform_key(key)
-      key.gsub("sample#", "")
+      key.delete_prefix(SAMPLE_PREFIX)
     end
 
     NUMBER = /^\d+(\.\d+)?/.freeze
+    UNDERSCORE = "_"
     def move_unit_to_key(key, value)
       scanner = StringScanner.new(value)
 
       scalar = scanner.scan(NUMBER)
       unit = scanner.rest
 
-      [[key, unit.downcase].delete_if(&:empty?).join("_"), Float(scalar)]
+      [[key, unit.downcase].delete_if(&:empty?).join(UNDERSCORE), Float(scalar)]
     end
   end
 end

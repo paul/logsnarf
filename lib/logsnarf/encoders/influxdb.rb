@@ -6,8 +6,9 @@ module Logsnarf::Encoders
       @metrics = metrics
     end
 
+    NL = "\n"
     def call
-      @metrics.map { |metric| Encoder.new(metric).to_s }.join("\n")
+      @metrics.map { |metric| Encoder.new(metric).to_s }.join(NL)
     end
 
     class Encoder
@@ -15,30 +16,41 @@ module Logsnarf::Encoders
         @metric = metric
       end
 
+      EQ = "="
       def tags
         @tags ||= @metric.tags
-                         .map { |k, v| [escape_string(k), escape_string(v)].join("=") }
+                         .map { |k, v| [escape_string(k), escape_string(v)].join(EQ) }
                          .join(",")
       end
 
       def fields
         @metric.values
                .transform_values { |v| v.is_a?(Integer) ? "#{v}i" : v.to_s }
-               .map { |k, v| [k, v].join("=") }
-               .join(",")
+               .map { |k, v| [k, v].join(EQ) }
+               .join(COMMA)
       end
 
       def to_s
         out = String.new
         out << escape_string(@metric.name)
-        out << "," << tags unless tags.empty?
-        out << " " << fields
-        out << " " << self.class.convert_timestamp(@metric.timestamp).to_s
+        out << COMMA << tags unless tags.empty?
+        out << SPACE << fields
+        out << SPACE <<
+          self.class
+              .convert_timestamp(@metric.timestamp)
+              .to_s
         out
       end
 
+      SPACE = " "
+      ESC_SPACE = '\ '
+      COMMA = ","
+      ESC_COMMA = '\,'
       def escape_string(str)
-        str.to_s.gsub(" ", '\ ').gsub(",", '\,')
+        str
+          .to_s
+          .gsub(SPACE, ESC_SPACE)
+          .gsub(COMMA, ESC_COMMA)
       end
 
       # Converts a Time to a timestamp with the given precision.
@@ -47,7 +59,8 @@ module Logsnarf::Encoders
       #
       #  InfluxDB.convert_timestamp(Time.now, "ms")
       #  #=> 1543533308243
-      def self.convert_timestamp(time, precision = "u")
+      USEC = "u"
+      def self.convert_timestamp(time, precision = USEC)
         factor = TIME_PRECISION_FACTORS.fetch(precision) do
           raise ArgumentError, "invalid time precision: #{precision}"
         end
@@ -72,7 +85,7 @@ module Logsnarf::Encoders
       #  InfluxDB.now("s")    #=> 1543612126
       #  InfluxDB.now("m")    #=> 25726868
       #  InfluxDB.now("h")    #=> 428781
-      def self.now(precision = "u")
+      def self.now(precision = USEC)
         name, divisor = CLOCK_NAMES.fetch(precision) do
           raise ArgumentError, "invalid time precision: #{precision}"
         end

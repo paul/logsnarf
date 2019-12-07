@@ -14,11 +14,12 @@ module Logsnarf
       @logsnarf = Logsnarf::Loader.new(credentials_store: credentials_store)
     end
 
+    INGRESS = "ingress"
     def call(env)
-      _, endpoint, token = *env["PATH_INFO"].split("/", 3)
+      _, endpoint, token = *env[Rack::PATH_INFO].split("/", 3)
 
-      if endpoint == "ingress"
-        @logsnarf.load(token, env["rack.input"])
+      if endpoint == INGRESS
+        @logsnarf.load(token, env[Rack::RACK_INPUT])
         [204, [], ""]
       else
         [404, [], ""]
