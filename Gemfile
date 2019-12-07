@@ -17,6 +17,7 @@ gem "falcon"
 gem "sentry-raven"
 
 gem "awesome_print"
+
 group :development do
   gem "pry"
   gem "pry-byebug"
@@ -32,6 +33,10 @@ group :development do
   gem "capistrano-bundler", require: false
   gem "capistrano-sentry", require: false
   gem "ed25519"
+
+  gem "benchmark-ips"
+  gem "mwrap"
+  gem "syslog-parser"
 end
 
 gemspec
