@@ -22,11 +22,16 @@ module Logsnarf::Clients
       @url = URI.parse(url)
     end
 
+    def stop
+      @task&.wait
+      http.close
+    end
+
     # Expects array of Decoder<name, timestamp, tags: {}, values: {}>
     def write(metrics)
       body = encode(metrics)
 
-      Async do
+      @task = Async do
         payload = { client: self.class.name, metrics: metrics, body: body }
         instrumenter.instrument("client.write_metrics", payload) do |payload|
           exception_notifier.extra_context(request: { url: write_url, headers: headers, body: body })

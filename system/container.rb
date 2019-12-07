@@ -2,6 +2,7 @@
 
 require "dry/system/container"
 require "async"
+require "console/serialized/logger"
 
 module Logsnarf
   class App < Dry::System::Container
@@ -13,7 +14,13 @@ module Logsnarf
       config.name = :logsnarf
       config.default_namespace = "logsnarf"
       config.auto_register = %w[lib/logsnarf]
-      config.logger = Async.logger
+      config.logger = if config.env == :test
+                        logger = Console::Logger.new(Console::Serialized::Logger.new(File.open("log/test.log", "a")))
+                        Console.logger = logger
+                        logger
+                      else
+                        Async.logger
+      end
     end
 
     load_paths! "lib"

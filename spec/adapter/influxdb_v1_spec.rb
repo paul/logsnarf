@@ -3,6 +3,7 @@
 require "spec_helper"
 
 RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
+  include_context Async::RSpec::Reactor
   let(:now) { Time.now }
   let(:creds) do
     {
@@ -23,6 +24,10 @@ RSpec.describe Logsnarf::Adapter::InfluxdbV1 do
   end
 
   it "should work" do
-    adapter.write_metrics(metrics)
+    task = reactor.async do |_task|
+      adapter.write_metrics(metrics)
+    end
+    task.wait
+    adapter.stop
   end
 end
