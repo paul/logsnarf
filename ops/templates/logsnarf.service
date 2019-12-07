@@ -12,6 +12,8 @@ EnvironmentFile=/var/www/logsnarf/current/ops/environments/production.env
 User=logsnarf
 Group=logsnarf
 Restart=always
+; restart every 24 hours
+RuntimeMaxSec=86400
 LimitNPROC=4096
 
 [Install]
