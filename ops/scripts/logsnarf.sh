@@ -56,7 +56,11 @@ gem install bundler
 gem update --system
 
 install -o root -g root -m 644 /tmp/templates/logsnarf.service /etc/systemd/system/logsnarf.service
+install -o root -g root -m 644 /tmp/templates/restart-logsnarf.service /etc/systemd/system/restart-logsnarf.service
+install -o root -g root -m 644 /tmp/templates/restart-logsnarf.timer /etc/systemd/system/restart-logsnarf.timer
+systemctl daemon-reload
 systemctl enable logsnarf.service
+systemctl enable restart-logsnarf.timer
 
 ## Cleanup
 yum clean all && rm -rf /var/cache/yum

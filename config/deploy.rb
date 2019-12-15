@@ -57,7 +57,11 @@ namespace :deploy do
   task :restart do
     on roles(:app) do
       execute "install -o root -g root -m 644 #{release_path}/ops/templates/logsnarf.service /etc/systemd/system/logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.service /etc/systemd/system/restart-logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.timer /etc/systemd/system/restart-logsnarf.timer"
       execute "systemctl daemon-reload"
+      execute "systemctl enable logsnarf.timer"
+      execute "systemctl restart logsnarf.timer"
       execute "systemctl enable logsnarf.service"
       execute "systemctl restart logsnarf.service"
       execute "systemctl status logsnarf.service"
