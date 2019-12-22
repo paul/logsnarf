@@ -37,6 +37,9 @@ group :development do
   gem "benchmark-ips"
   gem "mwrap"
   gem "syslog-parser"
+  gem "ruby-prof"
+  gem "memory_profiler"
+  gem "get_process_mem"
 end
 
 gemspec

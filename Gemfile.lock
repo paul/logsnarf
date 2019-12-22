@@ -123,6 +123,8 @@ GEM
     faraday (0.17.0)
       multipart-post (>= 1.2, < 3)
     ffi (1.11.3)
+    get_process_mem (0.2.5)
+      ffi (~> 1.0)
     i18n (1.7.0)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -130,6 +132,7 @@ GEM
     localhost (1.1.6)
     lru_redux (1.1.0)
     mapping (1.1.1)
+    memory_profiler (0.9.14)
     method_source (0.9.2)
     multipart-post (2.1.1)
     mwrap (2.1.0)
@@ -177,6 +180,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.0)
+    ruby-prof (1.1.0)
     samovar (2.1.2)
       console (~> 1.0)
       mapping (~> 1.0)
@@ -210,14 +214,17 @@ DEPENDENCIES
   dry-system
   ed25519
   falcon
+  get_process_mem
   logsnarf!
   lru_redux
+  memory_profiler
   mwrap
   pry
   pry-byebug
   pry-doc
   rake (~> 10.0)
   rspec (~> 3.0)
+  ruby-prof
   sentry-raven
   syslog-parser
 
