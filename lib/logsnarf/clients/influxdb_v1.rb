@@ -37,10 +37,14 @@ module Logsnarf::Clients
           exception_notifier.extra_context(request: { url: write_url, headers: headers, body: body })
           response = http.post(write_url, headers, body)
           payload[:response] = response
-          raise RequestError, response unless (200..299).cover?(response.status)
+          raise RequestError, response unless response.success?
+
+          response.finish
         rescue StandardError => e
           exception_notifier.capture_exception(e, extra: { response: response, body: response&.read })
           raise
+        ensure
+          response&.close
         end
       end
     end
