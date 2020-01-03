@@ -15,7 +15,7 @@ module Logsnarf::Subscribers
       account, bytes, lines, metrics = event.payload.values_at(:account, :bytes, :lines, :metrics)
       logger
         .with(name: account)
-        .info "Received %db (%d lines) which parsed to %d metrics (%0.2fms)" % [bytes, lines, metrics.size, event.duration_ms]
+        .debug "Received %db (%d lines) which parsed to %d metrics (%0.2fms)" % [bytes, lines, metrics.size, event.duration_ms]
     end
 
     Logsnarf::App[:instrumenter].subscribe(new)
