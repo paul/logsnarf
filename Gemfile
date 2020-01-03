@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
+ruby File.read(".ruby-version").strip
 
 gem "dry-core"
 gem "dry-events"
@@ -35,11 +36,11 @@ group :development do
   gem "ed25519"
 
   gem "benchmark-ips"
-  gem "mwrap"
-  gem "syslog-parser"
-  gem "ruby-prof"
-  gem "memory_profiler"
   gem "get_process_mem"
+  gem "memory_profiler"
+  gem "mwrap"
+  gem "ruby-prof"
+  gem "syslog-parser"
 end
 
 gemspec
