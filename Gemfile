@@ -11,9 +11,9 @@ gem "dry-system"
 gem "aws-sdk-dynamodb"
 gem "lru_redux"
 
-gem "async-http"
+gem "async-http", "~> 0.50"
 
-gem "falcon"
+gem "falcon", "~> 0.34"
 
 gem "sentry-raven"
 
@@ -25,9 +25,9 @@ group :development do
   gem "pry-doc"
 
   gem "async-rspec"
-  gem "bundler", "~> 2.0"
-  gem "rake", "~> 10.0"
-  gem "rspec", "~> 3.0"
+  gem "bundler", "~> 2.1"
+  gem "rake", "~> 13.0"
+  gem "rspec", "~> 3"
 
   gem "bcrypt_pbkdf"
   gem "capistrano", require: false
