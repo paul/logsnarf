@@ -18,9 +18,16 @@ module Logsnarf::Encoders
 
       EQ = "="
       def tags
-        @tags ||= @metric.tags
-                         .map { |k, v| [escape_string(k), escape_string(v)].join(EQ) }
-                         .join(",")
+        @tags ||= begin
+          tags = @metric.tags
+          if source = tags["source"]
+            type, idx = source.split(".")
+            tags.merge!(type: type, idx: idx)
+          end
+          tags
+            .map { |k, v| [escape_string(k), escape_string(v)].join(EQ) }
+            .join(",")
+        end
       end
 
       def fields

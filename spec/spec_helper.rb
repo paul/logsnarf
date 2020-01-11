@@ -21,3 +21,19 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+def base
+  @base ||= Pathname.pwd.join("spec/fixtures")
+end
+
+def log_sample(sample)
+  all_log_fixtures[sample.to_s + ".log"]
+end
+
+def other_samples(without)
+  all_log_fixtures.reject { |k, _v| k == without.to_s + ".log" }
+end
+
+def all_log_fixtures
+  @all_log_fixtures ||= base.glob("*.log").map { |f| [f.relative_path_from(base).to_s, f.read] }.to_h
+end
