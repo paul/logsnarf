@@ -19,7 +19,8 @@ module Logsnarf::Encoders
       EQ = "="
       def tags
         @tags ||= @metric.tags.then do |tags|
-          if source = tags["source"]
+          source = tags["source"]
+          if source&.include?(".")
             type, idx = source.split(".")
             tags.merge!(type: type, idx: idx)
           end
