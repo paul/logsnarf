@@ -18,30 +18,38 @@ module Logsnarf::Encoders
 
       EQ = "="
       def tags
-        @tags ||= begin
-          tags = @metric.tags
+        @tags ||= @metric.tags.then do |tags|
           if source = tags["source"]
             type, idx = source.split(".")
             tags.merge!(type: type, idx: idx)
           end
           tags
-            .map { |k, v| [escape_string(k), escape_string(v)].join(EQ) }
-            .join(",")
+            .transform_keys(&:to_s)
+            .transform_values(&:to_s)
         end
       end
 
       def fields
-        @metric.values
-               .transform_values { |v| v.is_a?(Integer) ? "#{v}i" : v.to_s }
-               .map { |k, v| [k, v].join(EQ) }
-               .join(COMMA)
+        @fields ||= @metric.values.then do |values|
+          if idx = tags["idx"]
+            values["idx"] = Integer(idx)
+          end
+
+          values
+            .transform_keys(&:to_s)
+            .transform_values { |v| v.is_a?(Integer) ? "#{v}i" : v.to_s }
+        end
       end
 
       def to_s
         out = String.new
         out << escape_string(@metric.name)
-        out << COMMA << tags unless tags.empty?
-        out << SPACE << fields
+        unless tags.empty?
+          out << COMMA
+          out << tags.map { |k, v| escape_string(k) + EQ + escape_string(v) }.join(COMMA)
+        end
+        out << SPACE
+        out << fields.map { |k, v| escape_string(k) + EQ + v }.join(COMMA)
         out << SPACE <<
           self.class
               .convert_timestamp(@metric.timestamp)
