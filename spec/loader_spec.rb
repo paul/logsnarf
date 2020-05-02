@@ -34,4 +34,15 @@ RSpec.describe Logsnarf::Loader do
   it "should work" do
     loader.load(token, io)
   end
+
+  context "when the log line looks like it matches a parser, but has no data" do
+    let(:io) { StringIO.new(<<~TXT) }
+      245 <45>1 #{now.iso8601} d.475fd4b7-03da-4e45-8c89-5d8ac5fff61d heroku heroku-redis - - source=MYREDIS
+    TXT
+
+    it "should raise a Loader::ParseError" do
+      expect { loader.load(token, io) }
+        .to raise_error(Logsnarf::Loader::ParseError)
+    end
+  end
 end
