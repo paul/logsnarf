@@ -19,6 +19,6 @@ module Logsnarf::Subscribers
       influxdb.write([metric])
     end
 
-    Logsnarf::App[:instrumenter].subscribe(new)
+    # Logsnarf::App[:instrumenter].subscribe(new)
   end
 end
