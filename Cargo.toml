@@ -7,7 +7,22 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.35"
 thiserror = "1.0"
 time = "^0.1"
-warp = "0.2"
-# syslog_rfc5424 = { path = "../rust-syslog-rfc5424", version = "0.7.0" }
+warp = "^0.2.5"
+tokio = { version = "0.2", features = ["full"] }
+bytes = "^0.6"
+influx_db_client = "^0.4.0"
+reqwest = "^0.10"
+log = "^0.4"
+env_logger = "^0.8"
+config = "0.10.1"
+serde = "1.0.118"
+serde_derive = "1.0.118"
+clap = "2.33.3"
+async-channel = "1.5.1"
+async-std = "1.8.0"
+rusoto_dynamodb = "0.45.0"
+rusoto_core = "0.45.0"
+dynomite = "0.10.0"

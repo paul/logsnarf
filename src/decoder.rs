@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -81,8 +81,8 @@ impl Display for FieldValue {
     }
 }
 
-pub type Tags = BTreeMap<TagKey, TagValue>;
-pub type Fields = BTreeMap<FieldKey, FieldValue>;
+pub type Tags = HashMap<TagKey, TagValue>;
+pub type Fields = HashMap<FieldKey, FieldValue>;
 
 #[derive(Clone, Debug)]
 pub struct Metric {
@@ -101,27 +101,17 @@ pub struct Decoder<'a> {
 }
 
 impl Decoder<'_> {
-    pub fn try_decode(self, log_data: &LogData) -> Option<Metric> {
-        if self.check(log_data) {
-            match log_data.msg.parse::<StructuredData>() {
-                Ok(data) => self.extract_tags(&data).map_or(None, |tags| {
-                    self.extract_fields(&data).map_or(None, |fields| {
-                        Some(Metric {
-                            timestamp: log_data.timestamp,
-                            name: String::from(self.name),
-                            tags: tags,
-                            fields: fields,
-                        })
-                    })
-                }),
-                Err(err) => {
-                    println!("Failed to parse data: {:?}", err);
-                    None
-                }
-            }
-        } else {
-            None
-        }
+    pub fn try_decode(self, log_data: &LogData, data: &StructuredData) -> Option<Metric> {
+        self.extract_tags(&data).map_or(None, |tags| {
+            self.extract_fields(&data).map_or(None, |fields| {
+                Some(Metric {
+                    timestamp: log_data.timestamp,
+                    name: String::from(self.name),
+                    tags,
+                    fields,
+                })
+            })
+        })
     }
 
     fn check(self, data: &LogData) -> bool {
@@ -241,6 +231,6 @@ const DECODERS: &'static [Decoder] = &[
     REDIS_DECODER,
 ];
 
-pub fn decode(data: &LogData) -> Option<Metric> {
-    DECODERS.iter().find_map(|dec| dec.try_decode(data))
+pub fn find_decoders(data: &LogData) -> impl Iterator<Item = &Decoder> {
+    DECODERS.iter().filter(move |dec| dec.check(data))
 }

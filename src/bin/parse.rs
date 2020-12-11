@@ -1,58 +1,43 @@
-use std::env;
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
+// use async_channel;
+use clap;
 
-// use syslog_rfc5424::SyslogMessage;
-use logsnarf_rs::decoder;
-use logsnarf_rs::LogData;
+use anyhow::{Context, Result};
+use async_std::fs::File;
+use async_std::io::BufReader;
+use async_std::prelude::*;
+use async_std::task;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
+#[macro_use]
+extern crate log;
+use env_logger;
 
-    let filename: String = args[1].clone();
+use logsnarf_rs::app::App;
 
-    let mut counter: u64 = 0;
+fn main() -> Result<()> {
+    env_logger::init();
+    let config = clap::App::new("logsnarf-parser")
+        .version("1.0")
+        .args_from_usage(
+            "-t, --token=<TOKEN> 'Config token'
+             -f, --file=<FILE> 'Log file to parse'",
+        )
+        .get_matches();
 
-    // File must exist in current path before this produces output
-    if let Ok(lines) = read_lines(filename) {
-        // Consumes the iterator, returns an (Optional) String
-        for line in lines {
-            if let Ok(ip) = line {
-                // println!("line: {:?}", ip);
-                let res = ip.parse::<LogData>();
-                match res {
-                    Ok(log_data) => {
-                        // println!("line: {:?}", ip);
-                        // println!("{:?}", log_data);
-                        match decoder::decode(&log_data) {
-                            Some(metric) => {
-                                counter += 1;
-                                // println!("{}", ip);
-                                // println!("Metric: {:?}", metric);
-                            }
-                            None => {}
-                        }
-                    }
-                    Err(err) => {
-                        println!("Parse error! {:?}", err);
-                        println!("line: {:?}", ip);
-                        panic!(err);
-                    }
-                }
-            }
-        }
-    }
+    // let args: Vec<String> = env::args().collect();
+    // let filename: String = args[1].clone();
+    let filename = config.value_of("file").expect("missing filename arg");
+    let token = config.value_of("token").expect("missing token arg").to_string();
+    let mut app = App::new();
 
-    println!("parsed {} metrics", counter);
-}
+    task::block_on(async {
+        let file = File::open(filename).await
+            .with_context(|| format!("Failed to read file!"))?;
+        let reader = BufReader::new(file);
 
-// The output is wrapped in a Result to allow matching on errors
-// Returns an Iterator to the Reader of the lines of the file.
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
+        app.handle(token, reader).await
+            .with_context(|| format!("Failed to parse data!"))?;
+
+        app.exit();
+        Ok(())
+    })
 }
