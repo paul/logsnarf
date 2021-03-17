@@ -65,7 +65,8 @@ module Logsnarf
     Decoder("heroku_postgres",
             ->(log_data) { log_data.pairs["procid"] == "heroku-postgres" },
             %w[addon source],
-            %w[sample#db_size
+            %w[sample#current_transaction
+               sample#db_size
                sample#tables
                sample#active-connections
                sample#waiting-connections
@@ -76,9 +77,13 @@ module Logsnarf
                sample#load-avg-15m
                sample#read-iops
                sample#write-iops
+               sample#tmp-disk-used
+               sample#tmp-disk-available
                sample#memory-total
                sample#memory-free
                sample#memory-cached
-               sample#memory-postgres]),
+               sample#memory-postgres
+               sample#wal-percentage-used
+            ]),
   ].freeze
 end
