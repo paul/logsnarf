@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::default::Default;
 
 // use dynomite::dynamodb::{DynamoDb, GetItemError, GetItemInput};
@@ -55,7 +54,6 @@ pub async fn fetch(client: &dyn DynamoDb, table_name: String, token: &String) ->
     };
     client.get_item(req).await?.item
         .map(|item| {
-            println!("{:#?}", item);
             Credentials::from_attrs(&mut item.clone())
                 .map_err(|source| CredentialsError::MalformedCredentials { source })
         })
@@ -67,7 +65,7 @@ mod tests {
     use super::*;
     use tokio_test::assert_ok;
 
-    use dynomite::dynamodb::{DynamoDbClient};
+    use dynomite::dynamodb::DynamoDbClient;
     use rusoto_core::Region;
 
     #[tokio::test]
@@ -77,7 +75,7 @@ mod tests {
         let token = "e0ff2e6751893dcd7fcb7a94d4535437".to_string();
         let result = fetch(&client, table, &token).await;
         println!("{:#?}", result);
-        // assert_ok!(result);
+        assert_ok!(result);
         let creds = result.unwrap();
         assert_eq!(creds.token, token);
         match creds.credentials {

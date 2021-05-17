@@ -6,15 +6,17 @@ use async_std::fs::File;
 use async_std::io::BufReader;
 use async_std::prelude::*;
 use async_std::task;
+use tokio::runtime::Runtime;
 
 #[macro_use]
 extern crate log;
 use env_logger;
 
-use logsnarf_rs::app::App;
+use logsnarf_rs::handler::Handler;
 
-fn main() -> Result<()> {
-    env_logger::init();
+#[tokio::main]
+async fn main() -> Result<()> {
+    env_logger::builder().format_timestamp_micros().init();
     let config = clap::App::new("logsnarf-parser")
         .version("1.0")
         .args_from_usage(
@@ -23,21 +25,18 @@ fn main() -> Result<()> {
         )
         .get_matches();
 
-    // let args: Vec<String> = env::args().collect();
-    // let filename: String = args[1].clone();
     let filename = config.value_of("file").expect("missing filename arg");
     let token = config.value_of("token").expect("missing token arg").to_string();
-    let mut app = App::new();
+    let mut handler = Handler::new();
 
-    task::block_on(async {
+    async {
         let file = File::open(filename).await
             .with_context(|| format!("Failed to read file!"))?;
         let reader = BufReader::new(file);
 
-        app.handle(token, reader).await
+        handler.call(token, reader).await
             .with_context(|| format!("Failed to parse data!"))?;
 
-        app.exit();
         Ok(())
-    })
+    }.await
 }

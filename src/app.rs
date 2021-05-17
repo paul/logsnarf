@@ -10,11 +10,11 @@ use crate::log_data::{LogData, StructuredData};
 use crate::settings::Settings;
 use crate::credentials;
 use crate::parser;
-use crate::writer::Writer;
+use crate::writer_store::WriterStore;
 
-pub struct App {
-    settings: Settings,
-    credentials: credentials::Store
+pub struct App<'a> {
+    settings: &'a Settings,
+    writers: &'a mut WriterStore<'a>,
 }
 
 #[derive(Debug, Error)]
@@ -29,21 +29,19 @@ pub enum AppErr {
     ReadError { source: std::io::Error },
 }
 
-impl App {
-    pub fn new() -> App {
+impl<'a> App<'_> {
+    pub fn new() -> App<'a> {
         let settings = Settings::new().unwrap();
+        let writers = &mut WriterStore::new(&settings);
         App {
-            settings: settings.clone(),
-            credentials: credentials::Store::new(settings.clone()),
+            settings: &settings,
+            writers,
         }
     }
 
-    pub async fn handle(&self, token: String, body: impl BufRead + std::marker::Unpin) -> Result<(), AppErr> {
-        // find credentials from token
-        // decode lines into metrics
-        // push credentials + metrics to writer
-        // let creds = self.credentials.fetch(&token).map_err(|source| AppErr::BadCredentials { source })?.clone();
-        let mut writer = Writer::new();
+    pub async fn handle(&mut self, token: String, body: impl BufRead + std::marker::Unpin) -> Result<(), AppErr> {
+        let mut writer = self.writers.get(&token).map_err(|source| AppErr::BadCredentials { source })?;
+
         let mut lines = body.lines();
         while let Some(line) = lines.next().await {
             let real_line = line.map_err(|source| AppErr::ReadError {source })?;
@@ -52,16 +50,15 @@ impl App {
             for decoder in decoders {
                 let data = log_data.msg.parse::<StructuredData>().map_err(|source| AppErr::ParseError { source })?;
                 if let Some(metric) = decoder.try_decode(&log_data, &data) {
-                    writer.write(metric);
+                    writer.add(metric);
                 }
             }
         }
-        writer.flush();
         Ok(())
     }
 
     pub fn exit(&mut self) {
-        // self.writer.flush();
+        self.writers.flush_all();
     }
 }
 
