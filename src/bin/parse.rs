@@ -1,42 +1,19 @@
-// use async_channel;
-use clap;
+use clap::{crate_version, FromArgMatches, IntoApp};
+use console::style;
 
-use anyhow::{Context, Result};
-use async_std::fs::File;
-use async_std::io::BufReader;
-use async_std::prelude::*;
-use async_std::task;
-use tokio::runtime::Runtime;
+use logsnarf_rs::opt::ParseOpt;
 
 #[macro_use]
 extern crate log;
 use env_logger;
 
-use logsnarf_rs::handler::Handler;
-
-#[tokio::main]
-async fn main() -> Result<()> {
+#[async_std::main]
+async fn main() {
     env_logger::builder().format_timestamp_micros().init();
-    let config = clap::App::new("logsnarf-parser")
-        .version("1.0")
-        .args_from_usage(
-            "-t, --token=<TOKEN> 'Config token'
-             -f, --file=<FILE> 'Log file to parse'",
-        )
-        .get_matches();
+    let matches = ParseOpt::into_app().version(crate_version!()).get_matches();
 
-    let filename = config.value_of("file").expect("missing filename arg");
-    let token = config.value_of("token").expect("missing token arg").to_string();
-    let mut handler = Handler::new();
-
-    async {
-        let file = File::open(filename).await
-            .with_context(|| format!("Failed to read file!"))?;
-        let reader = BufReader::new(file);
-
-        handler.call(token, reader).await
-            .with_context(|| format!("Failed to parse data!"))?;
-
-        Ok(())
-    }.await
+    if let Err(error) = logsnarf_rs::parse(ParseOpt::from_arg_matches(&matches)).await {
+        println!("{} {}", style("error:").bold().red(), error);
+        std::process::exit(1);
+    }
 }

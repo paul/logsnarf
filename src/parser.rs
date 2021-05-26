@@ -3,12 +3,9 @@ use std::str;
 use std::str::FromStr;
 use std::string;
 
+use chrono::{DateTime, Utc};
 use thiserror::Error;
-use time;
 
-// use crate::facility;
-// use crate::message::{StructuredData, SyslogMessage};
-// use crate::severity;
 use crate::log_data::{LogData, StructuredData};
 
 #[derive(Debug, Error)]
@@ -19,6 +16,9 @@ pub enum ParseErr {
     // BadSeverityInPri,
     // #[error("bad facility in message")]
     // BadFacilityInPri,
+    #[error(transparent)]
+    TimestampParseError(#[from] chrono::ParseError),
+
     #[error("unexpected eof")]
     UnexpectedEndOfInput,
     #[error("too few digits in numeric field")]
@@ -188,53 +188,17 @@ fn parse_decimal(d: &str, min_digits: usize, max_digits: usize) -> ParseResult<(
     })
 }
 
-fn parse_timestamp(m: &str) -> ParseResult<(time::Timespec, &str)> {
-    let mut rest = m;
-    if rest.starts_with('-') {
-        // return Ok((None, &rest[1..]));
+fn parse_timestamp(input: &str) -> ParseResult<(DateTime<Utc>, &str)> {
+    let (res, rest1) = take_while(input, |c| c != ' ', 128);
+    let rest = rest1.ok_or(ParseErr::UnexpectedEndOfInput)?;
+    if res.starts_with('-') {
         return Err(ParseErr::MissingField("timestamp"));
     }
-    let mut tm = time::empty_tm();
-    tm.tm_year = take_item!(parse_num(rest, 4, 4), rest) - 1900;
-    take_char!(rest, '-');
-    tm.tm_mon = take_item!(parse_num(rest, 2, 2), rest) - 1;
-    take_char!(rest, '-');
-    tm.tm_mday = take_item!(parse_num(rest, 2, 2), rest);
-    take_char!(rest, 'T');
-    tm.tm_hour = take_item!(parse_num(rest, 2, 2), rest);
-    take_char!(rest, ':');
-    tm.tm_min = take_item!(parse_num(rest, 2, 2), rest);
-    take_char!(rest, ':');
-    tm.tm_sec = take_item!(parse_num(rest, 2, 2), rest);
-    if rest.starts_with('.') {
-        take_char!(rest, '.');
-        tm.tm_nsec = take_item!(parse_decimal(rest, 1, 6), rest);
-    }
-    // Tm::utcoff is totally broken, don't use it.
-    let utc_offset_mins = match rest.chars().next() {
-        None => 0,
-        Some('Z') => {
-            rest = &rest[1..];
-            0
-        }
-        Some(c) => {
-            let (sign, irest) = match c {
-                // Note: signs are backwards as per RFC3339
-                '-' => (1, &rest[1..]),
-                '+' => (-1, &rest[1..]),
-                _ => {
-                    return Err(ParseErr::InvalidUTCOffset);
-                }
-            };
-            let hours = i32::from_str(&irest[0..2]).map_err(ParseErr::IntConversionErr)?;
-            let minutes = i32::from_str(&irest[3..5]).map_err(ParseErr::IntConversionErr)?;
-            rest = &irest[5..];
-            minutes * sign + hours * 60 * sign
-        }
-    };
-    tm = tm + time::Duration::minutes(i64::from(utc_offset_mins));
-    tm.tm_isdst = -1;
-    Ok((tm.to_utc().to_timespec(), rest))
+
+    let dt = DateTime::parse_from_rfc3339(res)
+        .map_err(ParseErr::TimestampParseError)?
+        .with_timezone(&Utc);
+    Ok((dt, rest))
 }
 
 fn parse_term(
@@ -330,7 +294,7 @@ pub fn parse_msg<S: AsRef<str>>(s: S) -> ParseResult<StructuredData> {
 //     use std::mem;
 
 //     use super::{parse_message, ParseErr};
-//     use crate::message;
+//     // use crate::message;
 
 //     use crate::facility::SyslogFacility;
 //     use crate::severity::SyslogSeverity;

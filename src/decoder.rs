@@ -1,162 +1,26 @@
-use std::collections::HashMap;
-use std::convert::Infallible;
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use crate::log_data::LogData;
 
-use thiserror::Error;
-use time;
-
-use crate::log_data::{LogData, StructuredData};
-
-pub type TagKey = String;
-pub type TagValue = String;
-pub type FieldKey = String;
-
-#[derive(Clone, Debug)]
-pub enum FieldValue {
-    Boolean(bool),
-    Float(f64),
-    Integer(i64),
-    Text(String),
-}
-
-macro_rules! from_impl {
-        ( $variant:ident => $( $typ:ident ),+ ) => (
-                $(
-                    impl From<$typ> for FieldValue {
-                        fn from(b: $typ) -> Self {
-                            FieldValue::$variant(b.into())
-                        }
-                    }
-                )+
-        )
-}
-from_impl! {Boolean => bool}
-from_impl! {Float => f32, f64}
-from_impl! {Integer => i8, i16, i32, i64}
-from_impl! {Text => String}
-impl From<&str> for FieldValue {
-    fn from(b: &str) -> Self {
-        FieldValue::Text(b.into())
-    }
-}
-impl<T> From<&T> for FieldValue
-where
-    T: Copy + Into<FieldValue>,
-{
-    fn from(t: &T) -> Self {
-        (*t).into()
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum ParseFieldValueErr {
-    #[error("failed to parse string into a field")]
-    FieldParseErr,
-}
-
-impl FromStr for FieldValue {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use FieldValue::*;
-        s.parse()
-            .map(Boolean)
-            .or_else(|_| s.parse().map(Float))
-            .or_else(|_| s.parse().map(Integer))
-            .or_else(|_| Ok(Text(s.into())))
-    }
-}
-
-impl Display for FieldValue {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        use FieldValue::*;
-
-        match self {
-            Boolean(x) => write!(f, "{}", x),
-            Float(x) => write!(f, "{}", x),
-            Integer(x) => write!(f, "{}", x),
-            Text(text) => write!(f, "{text}", text = text),
-        }
-    }
-}
-
-pub type Tags = HashMap<TagKey, TagValue>;
-pub type Fields = HashMap<FieldKey, FieldValue>;
-
-#[derive(Clone, Debug)]
-pub struct Metric {
-    pub timestamp: time::Timespec,
-    pub name: String,
-    pub tags: Tags,
-    pub fields: Fields,
-}
-
-#[derive(Clone, Copy, Debug)]
 pub struct Decoder<'a> {
-    match_field: (&'a str, &'a str),
-    name: &'a str,
-    tag_names: &'a [&'a str],
-    field_names: &'a [&'a str],
+    matcher: &'a dyn Fn(&LogData) -> bool,
+    pub name: &'a str,
+    pub tag_names: &'a [&'a str],
+    pub field_names: &'a [&'a str],
 }
 
-impl Decoder<'_> {
-    pub fn try_decode(self, log_data: &LogData, data: &StructuredData) -> Option<Metric> {
-        self.extract_tags(&data).map_or(None, |tags| {
-            self.extract_fields(&data).map_or(None, |fields| {
-                Some(Metric {
-                    timestamp: log_data.timestamp,
-                    name: String::from(self.name),
-                    tags,
-                    fields,
-                })
-            })
-        })
-    }
-
-    fn check(self, data: &LogData) -> bool {
-        let (k, v) = self.match_field;
-        match k {
-            "appname" => data.appname == v,
-            "procid" => data.procid == v,
-            _ => panic!("can't get here"),
-        }
-    }
-
-    fn extract_tags(self, data: &StructuredData) -> Option<Tags> {
-        let mut tags = Tags::new();
-        for key in self.tag_names {
-            let key_s = String::from(*key);
-            match data.get(&key_s) {
-                Some(val) => tags.insert(key_s.clone(), val.clone()),
-                None => return None,
-            };
-        }
-        Some(tags)
-    }
-
-    fn extract_fields(self, data: &StructuredData) -> Option<Fields> {
-        let mut fields = Fields::new();
-        for key in self.field_names {
-            let key_s = String::from(*key);
-            match data.get(&key_s) {
-                Some(val) => {
-                    let (key_s, value) = self.extract_unit(key_s, val);
-                    fields.insert(key_s.clone(), value.clone())
-                }
-                None => return None,
-            };
-        }
-        Some(fields)
-    }
-
-    fn extract_unit(self, key: String, val: &str) -> (String, FieldValue) {
-        (key, val.parse::<FieldValue>().unwrap())
-    }
-}
+const DYNO_LOAD_DECODER: Decoder<'static> = Decoder {
+    // match_field: ("appname", "heroku"),
+    matcher: &{ |ld: &LogData| ld.appname == "heroku" && ld.msg.contains("load_avg_1m") },
+    name: "heroku_dyno_load",
+    tag_names: &["source"],
+    field_names: &[
+        "sample#load_avg_1m",
+        "sample#load_avg_5m",
+        "sample#load_avg_15m",
+    ],
+};
 
 const DYNO_MEMORY_DECODER: Decoder<'static> = Decoder {
-    match_field: ("appname", "heroku"),
+    matcher: &{ |ld: &LogData| ld.appname == "heroku" && ld.msg.contains("memory_total") },
     name: "heroku_dyno_memory",
     tag_names: &["source"],
     field_names: &[
@@ -170,19 +34,8 @@ const DYNO_MEMORY_DECODER: Decoder<'static> = Decoder {
     ],
 };
 
-const DYNO_LOAD_DECODER: Decoder<'static> = Decoder {
-    match_field: ("appname", "heroku"),
-    name: "heroku_dyno_load",
-    tag_names: &["source"],
-    field_names: &[
-        "sample#load_avg_1m",
-        "sample#load_avg_5m",
-        "sample#load_avg_15m",
-    ],
-};
-
 const POSTGRES_DECODER: Decoder<'static> = Decoder {
-    match_field: ("procid", "heroku-postgres"),
+    matcher: &{ |ld: &LogData| ld.procid == "heroku-postgres" },
     name: "heroku_postgres",
     tag_names: &["addon", "source"],
     field_names: &[
@@ -205,7 +58,7 @@ const POSTGRES_DECODER: Decoder<'static> = Decoder {
 };
 
 const REDIS_DECODER: Decoder<'static> = Decoder {
-    match_field: ("procid", "heroku-redis"),
+    matcher: &{ |ld: &LogData| ld.procid == "heroku-redis" },
     name: "heroku_redis",
     tag_names: &["addon"],
     field_names: &[
@@ -224,13 +77,26 @@ const REDIS_DECODER: Decoder<'static> = Decoder {
     ],
 };
 
+const ROUTER_DECODER: Decoder<'static> = Decoder {
+    matcher: &{ |ld: &LogData| ld.procid == "heroku-router" },
+    name: "heroku_router",
+    tag_names: &["method", "host", "dyno", "status", "protocol"],
+    field_names: &["connect", "service", "bytes"],
+};
+
 const DECODERS: &'static [Decoder] = &[
-    DYNO_MEMORY_DECODER,
     DYNO_LOAD_DECODER,
+    DYNO_MEMORY_DECODER,
     POSTGRES_DECODER,
     REDIS_DECODER,
+    ROUTER_DECODER,
 ];
 
-pub fn find_decoders(data: &LogData) -> impl Iterator<Item = &Decoder> {
-    DECODERS.iter().filter(move |dec| dec.check(data))
+pub fn find_decoder(ld: &LogData) -> Option<&Decoder<'_>> {
+    for decoder in DECODERS {
+        if (decoder.matcher)(ld) {
+            return Some(decoder);
+        }
+    }
+    None
 }

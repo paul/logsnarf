@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 use std::ops;
 use std::str::FromStr;
 
+use chrono::{DateTime, Utc};
+
 #[allow(non_camel_case_types)]
 pub type procid_t = String;
 
@@ -54,29 +56,6 @@ impl StructuredData {
             .insert(sd_param_id.into(), sd_param_value.into());
     }
 
-    // /// Lookup by SDID, SDParamID pair
-    // pub fn find_tuple<'b>(
-    //     &'b self,
-    //     sd_id: &str,
-    //     sd_param_id: &str,
-    // ) -> Option<&'b SDParamValueType> {
-    //     // TODO: use traits to make these based on the public types instead of &str
-    //     if let Some(sub_map) = self.elements.get(sd_id) {
-    //         if let Some(value) = sub_map.get(sd_param_id) {
-    //             Some(value)
-    //         } else {
-    //             None
-    //         }
-    //     } else {
-    //         None
-    //     }
-    // }
-
-    // /// Find all param/value mappings for a given SDID
-    // pub fn find_sdid<'b>(&'b self, sd_id: &str) -> Option<&'b StructuredDataElement> {
-    //     self.elements.get(sd_id)
-    // }
-
     /// The number of distinct SD_IDs
     pub fn len(&self) -> usize {
         self.elements.len()
@@ -90,7 +69,7 @@ impl StructuredData {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LogData {
-    pub timestamp: time::Timespec,
+    pub timestamp: DateTime<Utc>,
     pub appname: String,
     pub procid: procid_t,
     pub msg: String,

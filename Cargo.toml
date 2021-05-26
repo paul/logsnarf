@@ -5,29 +5,36 @@ authors = ["Paul Sadauskas <psadauskas@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "parse"
+path = "src/bin/parse.rs"
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
 
 [dependencies]
+clap = "3.0.0-beta.2"
+console = "0.14.1"
+dotenv = "0.15"
 anyhow = "1.0.35"
 thiserror = "1.0"
-time = "^0.1"
-warp = "^0.2.5"
-tokio = { version = "0.2", features = ["full"] }
-bytes = "^0.6"
-influx_db_client = "^0.4.0"
-reqwest = "^0.10"
+# time = "^0.2"
+# bytes = "^0.6"
+chrono = "0.4"
 log = "^0.4"
 env_logger = "^0.8"
-config = "0.10.1"
-serde = "1.0.118"
-serde_derive = "1.0.118"
-clap = "2.33.3"
-async-channel = "1.5.1"
-async-std = "1.8.0"
-rusoto_dynamodb = "0.45.0"
-rusoto_core = "0.45.0"
-# dynomite = "0.10"
-dynomite = { git = "https://github.com/softprops/dynomite", branch = "master" }
-tokio-test = "0.3.0"
+# config = "0.10.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+tide = "0.16"
+async-std = { version = "1.9", features = ["attributes"] }
+# async-channel = "1.5.1"
+sqlx = { version = "0.5", features = [ "runtime-async-std-rustls", "postgres", "macros", "json" ] }
+tide-sqlx = "0.3"
+
+influxdb = { version = "0.4", default-features = false, features = ["derive", "use-serde", "h1-client-rustls"] }
 
 [dev-dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
