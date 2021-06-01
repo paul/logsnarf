@@ -43,18 +43,24 @@ github.com/aws/aws-sdk-go/service/sso
 github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/hashicorp/golang-lru v0.5.4
 ## explicit
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/influxdata/go-syslog/v3 v3.0.0
+## explicit
+github.com/influxdata/go-syslog/v3
+github.com/influxdata/go-syslog/v3/common
+github.com/influxdata/go-syslog/v3/rfc5424
+github.com/influxdata/go-syslog/v3/testing
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/mitchellh/go-homedir v1.1.0
-## explicit
-# github.com/pborman/getopt/v2 v2.1.0
-## explicit
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/rs/zerolog v1.22.0
 ## explicit
 github.com/rs/zerolog
@@ -66,5 +72,6 @@ github.com/rs/zerolog/log
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/spf13/viper v1.7.1
+# github.com/stretchr/testify v1.3.0
 ## explicit
+github.com/stretchr/testify/assert
