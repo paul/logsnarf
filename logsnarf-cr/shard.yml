@@ -1,0 +1,16 @@
+name: logsnarf
+version: 0.1.0
+
+authors:
+  - Paul Sadauskas <psadauskas@gmail.com>
+
+executables:
+  - parse
+
+targets:
+  parse:
+    main: src/bin/parse.cr
+
+crystal: 1.2.1
+
+license: MIT
