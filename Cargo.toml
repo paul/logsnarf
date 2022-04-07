@@ -1,0 +1,11 @@
+[package]
+name = "logsnarf"
+version = "0.1.0"
+edition = "2021"
+authors = ["Paul Sadauskas <paul@sadauskas.com>"]
+
+[dependencies]
+tokio = {version = "1", features = ["full", "macros"]}
+# lambda = { git = "https://github.com/awslabs/aws-lambda-rust-runtime/", branch = "master"}
+lambda_runtime = "0.5.1"
+serde_json = "1.0"
