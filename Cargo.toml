@@ -5,7 +5,20 @@ edition = "2021"
 authors = ["Paul Sadauskas <paul@sadauskas.com>"]
 
 [dependencies]
-tokio = {version = "1", features = ["full", "macros"]}
-# lambda = { git = "https://github.com/awslabs/aws-lambda-rust-runtime/", branch = "master"}
 lambda_runtime = "0.5.1"
+lambda_http = "0.5.1"
+
+tokio = {version = "1", features = ["full", "tracing"]}
+tokio-stream = "0.1.8"
+tokio-util = {version = "0.7.1", features = ["codec", "compat"]}
+
 serde_json = "1.0"
+
+tracing = "0.1.32"
+tracing-subscriber = { version = "0.2", features = ["fmt", "json"] }
+async-trait = "0.1.53"
+
+[[bin]]
+name = "handle_log"
+path = "src/bin/handle_log.rs"
+test = false
