@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "logsnarf-test-sam"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1asip91pru5jo"
+s3_prefix = "logsnarf-test-sam"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

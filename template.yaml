@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    MemorySize: 128
+    Architectures: ["arm64"]
+    Handler: bootstrap
+    Runtime: provided.al2
+    Timeout: 5
+    Tracing: Active
+    Environment:
+      Variables:
+        RUST_LOG: info
+
+Resources:
+  HandleLogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: "logsnarf-test"
+      FunctionUrlConfig:
+        AuthType: NONE
+      CodeUri: target/lambda/handle_log/
+
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: AllAtOnce
+
+      Layers:
+        # Add Lambda Insight Extension for shutdown sigterm, i think?
+        # - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:2"
+        - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:1"
+      Policies:
+        - CloudWatchLambdaInsightsExecutionRolePolicy # Add IAM Permission for Lambda Insight Extension
+    Metadata:
+      BuildMethod: makefile
+
+Outputs:
+  HandleLogUrl:
+    Description: "API Gateway endpoint URL"
+    Value:
+      Fn::GetAtt: HandleLogFunctionUrl.FunctionUrl
