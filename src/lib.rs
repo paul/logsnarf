@@ -1,7 +1,8 @@
-pub mod app;
-pub mod domain;
-pub mod entrypoints;
-mod error;
-pub mod utils;
+// pub mod app;
+// pub mod metric_store;
 
-pub use error::Error;
+mod error;
+pub use error::{Error, Result};
+
+mod shutdown;
+use shutdown::Shutdown;

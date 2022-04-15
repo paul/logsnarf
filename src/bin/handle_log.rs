@@ -1,37 +1,73 @@
-use lambda_http::{service_fn, Request, IntoResponse};
-// use products::{entrypoints::lambda::apigateway::get_product, utils::*};
+use std::collections::HashMap;
+use std::sync::RwLock;
 
-use tracing::{info, instrument};
+use tracing::info;
 
-use logsnarf::utils::*;
-use logsnarf::entrypoints::lambda::httpfunction::handle_log_event;
+use lambda_http::{
+    service_fn, Request,
+    Response,
+    http::StatusCode};
+
+use tokio::signal::unix::{signal, SignalKind};
+
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
+type Token = String;
+type Entry = Vec<u8>;
+
+#[derive(Default)]
+struct Buffer {
+    pub data: RwLock<HashMap<Token, Entry>>,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), E> {
-    // Initialize logger
-    setup_tracing();
+    let subscriber = tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .json()
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
 
-    // Initialize store
-    let app = get_app().await;
+    let buffer = Buffer::default();
+    let buffer_ref = &buffer;
 
-    // Run the Lambda function
-    //
-    // This is the entry point for the Lambda function. The `lambda_http`
-    // crate will take care of contacting the Lambda runtime API and invoking
-    // the `handle_log_event` function.
-    // See https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html
-    //
-    // This uses a closure to pass the Service without having to reinstantiate
-    // it for every call. This is a bit of a hack, but it's the only way to
-    // pass a store to a lambda function.
-    //
-    // Furthermore, we don't await the result of `handle_log_event` because
-    // async closures aren't stable yet. This way, the closure returns a Future,
-    // which matches the signature of the lambda function.
-    // See https://github.com/rust-lang/rust/issues/62290
-    lambda_http::run(service_fn(|event: Request| handle_log_event(&app, event))).await?;
+    let mut shutdown = signal(SignalKind::terminate())?;
+    // let (_shutdown_send, shutdown_recv) = mpsc::unbounded_channel();
+
+    // let signals = &[signal(SignalKind::hangup()), signal(SignalKind::terminate())];
+
+    // let shutdown_func = move || async move {
+    //     buffer_ref.data.write().unwrap().clear();
+    //     Ok(())
+    // };
+    // let signals_task = tokio::spawn(shutdown_func);
+    // let signals_task = tokio::spawn(handle_shutdown(buffer_ref));
+
+    let event_func = move |event: Request| async move {
+        let (parts, body) = event.into_parts();
+
+        let token = parts.uri.path().split("/").last().unwrap();
+
+        info!("Writing: {} {:?}", token, body);
+        buffer_ref.data.write().unwrap().insert(token.to_string(), body.to_vec());
+
+        Ok(Response::builder().status(StatusCode::ACCEPTED).body(()).unwrap())
+    };
+    // lambda_http::run(service_fn(event_func)).await?;
+
+    tokio::select! {
+        _ = lambda_http::run(service_fn(event_func)) => {},
+        _ = shutdown.recv() => {
+            info!("Flushing: {:?}", buffer_ref.data);
+            buffer_ref.data.write().unwrap().clear();
+        },
+        // _ = shutdown_recv.recv() => {},
+    }
+
+    // handle.close();
+    // signals_task.await?;
+
     Ok(())
 }
 

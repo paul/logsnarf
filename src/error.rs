@@ -9,7 +9,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> std::result::Result<(), fmt::Error> {
         match self {
             Error::InitError(msg) => write!(f, "InitError: {}", msg),
             Error::ClientError(msg) => write!(f, "ClientError: {}", msg),
@@ -20,3 +20,6 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {}
+
+/// This is defined as a convenience.
+pub type Result<T> = std::result::Result<T, Error>;
