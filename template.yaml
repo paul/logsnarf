@@ -22,9 +22,10 @@ Resources:
         AuthType: NONE
       CodeUri: target/lambda/handle_log/
 
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: AllAtOnce
+      # Tried versioning, causes the function to 403
+      # AutoPublishAlias: live
+      # DeploymentPreference:
+      #   Type: AllAtOnce
 
       Layers:
         # Add Lambda Insight Extension for shutdown sigterm, i think?
