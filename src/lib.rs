@@ -1,6 +1,8 @@
 // pub mod app;
 // pub mod metric_store;
 
+pub mod parser;
+
 pub mod utils;
 
 // mod error;

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::sync::RwLock;
+use std::str;
 
 use tracing::info;
 
@@ -13,11 +14,12 @@ use lambda_http::{
 use tokio::signal::unix::{signal, SignalKind};
 
 use logsnarf::utils;
+use logsnarf::parser::{LogData, parse_line};
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 type Token = String;
-type Metric = Vec<u8>;
+type Metric = LogData;
 
 #[derive(Default)]
 struct Buffer {
@@ -50,16 +52,20 @@ async fn main() -> Result<(), E> {
 async fn handle_event(buffer: &Buffer, req: Request) -> Result<impl IntoResponse, E> {
     let _context = req.lambda_context();
     let (parts, body) = req.into_parts();
-
     let token = parts.uri.path().split("/").last().unwrap();
+    let mut item = buffer.data.write().unwrap();
 
-    info!("Writing: {} {:?}", token, body);
-    // buffer.data.write().unwrap().insert(token.to_string(), body.to_vec());
-    let mut data = buffer.data.write().unwrap();
-    match data.entry(token.to_string()) {
-        Entry::Occupied(mut e) => { e.get_mut().push(body.to_vec()); },
-        Entry::Vacant(e) => {e.insert(vec![body.to_vec()]); },
-    };
+    let mut stream = body.split(|c| *c == b'\n');
+
+    while let Some(line) = stream.next() {
+        if let Ok(Some(data)) = parse_line(str::from_utf8(line).unwrap()) {
+            info!("Writing: {} {:?}", token, data);
+            match item.entry(token.to_string()) {
+                Entry::Occupied(mut e) => { e.get_mut().push(data); },
+                Entry::Vacant(e) => {e.insert(vec![data]); },
+            };
+        }
+    }
 
     Ok(Response::builder().status(StatusCode::ACCEPTED).body(()).unwrap())
 }

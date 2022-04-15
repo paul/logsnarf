@@ -21,6 +21,7 @@ tracing-subscriber = { version = "0.3.11", features = ["fmt", "json", "env-filte
 signal-hook = "0.3.13"
 signal-hook-tokio = {version = "0.3.1", features = ["futures-v0_3"] }
 futures = "0.3.21"
+thiserror = "1.0.30"
 
 [dev-dependencies]
 cargo-lambda = "0.6"
