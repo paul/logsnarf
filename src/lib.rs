@@ -1,6 +1,8 @@
 // pub mod app;
 // pub mod metric_store;
 
+pub mod decoder;
+pub mod metric;
 pub mod parser;
 
 pub mod utils;

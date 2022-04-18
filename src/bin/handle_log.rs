@@ -14,12 +14,12 @@ use lambda_http::{
 use tokio::signal::unix::{signal, SignalKind};
 
 use logsnarf::utils;
-use logsnarf::parser::{LogData, parse_line};
+use logsnarf::decoder::decode;
+use logsnarf::metric::Metric;
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 type Token = String;
-type Metric = LogData;
 
 #[derive(Default)]
 struct Buffer {
@@ -58,11 +58,11 @@ async fn handle_event(buffer: &Buffer, req: Request) -> Result<impl IntoResponse
     let mut stream = body.split(|c| *c == b'\n');
 
     while let Some(line) = stream.next() {
-        if let Ok(Some(data)) = parse_line(str::from_utf8(line).unwrap()) {
-            info!("Writing: {} {:?}", token, data);
+        if let Ok(Some(metric)) = decode(str::from_utf8(line).unwrap().to_string()) {
+            info!("Writing: {} {:?}", token, metric);
             match item.entry(token.to_string()) {
-                Entry::Occupied(mut e) => { e.get_mut().push(data); },
-                Entry::Vacant(e) => {e.insert(vec![data]); },
+                Entry::Occupied(mut e) => { e.get_mut().push(metric); },
+                Entry::Vacant(e) => {e.insert(vec![metric]); },
             };
         }
     }

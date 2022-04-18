@@ -1313,6 +1313,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "cargo-lambda",
+ "chrono",
  "futures",
  "lambda_http",
  "lambda_runtime",
