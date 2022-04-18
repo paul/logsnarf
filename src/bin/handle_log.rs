@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::RwLock;
 use std::str;
 
@@ -19,17 +18,12 @@ use logsnarf::metric_store::MetricStore;
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-#[derive(Default)]
-struct StoreWrapper {
-    pub store: RwLock<MetricStore>,
-}
-
 #[tokio::main]
 async fn main() -> Result<(), E> {
     utils::setup_tracing();
 
 
-    let store = StoreWrapper::default();
+    let store = MetricStore::new();
     let store_ref = &store;
 
     let mut shutdown = if utils::local_lambda() {
@@ -39,7 +33,7 @@ async fn main() -> Result<(), E> {
     };
 
     tokio::select! {
-        _ = lambda_http::run(service_fn(move |event: Request| handle_event(store_ref, event))) => {},
+        _ = lambda_http::run(service_fn(move |event: Request| handle_event(store_ref.clone(), event))) => {},
         _ = shutdown.recv() => {
             flush_all(&store_ref).await?
         },
@@ -48,7 +42,7 @@ async fn main() -> Result<(), E> {
     Ok(())
 }
 
-async fn handle_event(store: &StoreWrapper, req: Request) -> Result<impl IntoResponse, E> {
+async fn handle_event(store: &MetricStore, req: Request) -> Result<impl IntoResponse, E> {
     let _context = req.lambda_context();
     let (parts, body) = req.into_parts();
 
@@ -64,15 +58,12 @@ async fn handle_event(store: &StoreWrapper, req: Request) -> Result<impl IntoRes
         }
     }
 
-    let mut data = store.store.write().unwrap();
-    data.push(token.to_owned(), metrics)?;
+    store.push(token.to_owned(), metrics)?;
 
     Ok(Response::builder().status(StatusCode::ACCEPTED).body(()).unwrap())
 }
 
-async fn flush_all(store: &StoreWrapper) -> Result<(), E> {
-    info!("Flushing: {:?}", store.store);
-    let mut data = store.store.write().unwrap();
-    data.flush_all()?;
+async fn flush_all(store: &MetricStore) -> Result<(), E> {
+    store.flush_all()?;
     Ok(())
 }
