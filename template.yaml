@@ -29,16 +29,38 @@ Resources:
 
       Layers:
         # Add Lambda Insight Extension for shutdown sigterm, i think?
-        # - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:2"
         - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:1"
+        # This one's in beta or something
+        # - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension-Arm64:2"
       Policies:
-        - CloudWatchLambdaInsightsExecutionRolePolicy # Add IAM Permission for Lambda Insight Extension
+        # Add IAM Permission for Lambda Insight Extension
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+        - KinesisCrudPolicy:
+            StreamName: logsnarf-test-stream
+
+        # Allow publishing to stream
+        # - Version: "2012-10-17"
+        #   Statement:
+        #     - Effect: Allow
+        #       Action:
+        #         - "kinesis:DescribeStream"
+        #         - "kinesis:DescribeStreamSummary"
+        #         - "kinesis:PutRecord"
+        #         - "kinesis:PutRecords"
+        #         - "kinesis:GetRecords"
+        #         - "kinesis:GetShardIterator"
+        #       # Resource: !GetAtt stream.Arn
+        #       Resource:
+        #         !Sub
+        #           - "arn:${AWS::Partition}:kinesis:${AWS::Region}:${AWS::AccountId}:stream/${streamName}"
+        #           - streamName: !GetAtt stream.StreamName
     Metadata:
       BuildMethod: makefile
 
   stream:
     Type: AWS::Kinesis::Stream
     Properties:
+      Name: logsnarf-test-stream
       ShardCount: 1
 
 Outputs:

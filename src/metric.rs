@@ -42,9 +42,9 @@ impl Metric {
     }
 }
 
-impl From<Metric> for aws_sdk_kinesis::types::Blob {
-    fn from(metric: Metric) -> Self {
-        Self::new(serde_json::to_string(&metric).unwrap())
+impl From<&Metric> for aws_sdk_kinesis::types::Blob {
+    fn from(metric: &Metric) -> Self {
+        Self::new(serde_json::to_string(metric).unwrap())
     }
 }
 

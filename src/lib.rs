@@ -1,6 +1,8 @@
 // pub mod app;
 // pub mod metric_store;
 
+pub mod app;
+pub use app::Token;
 pub mod decoder;
 pub mod metric;
 pub use metric::Metric;

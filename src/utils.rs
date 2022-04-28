@@ -1,24 +1,23 @@
-use tracing_subscriber::{prelude::*, Layer};
+use tracing::info;
 
 /// Setup tracing
 pub fn setup_tracing() {
-    let env_log = tracing_subscriber::fmt::layer()
-        .with_filter(tracing_subscriber::EnvFilter::from_default_env());
-    let subscriber = tracing_subscriber::Registry::default().with(env_log);
-
-    let host_subscriber = if local_lambda() {
-        None
+    if local_lambda() {
+        tracing_subscriber::fmt()
+            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            .init();
+        info!("Configured logging for local lambda env");
     } else {
-        Some(
-            tracing_subscriber::fmt::layer()
-                .with_ansi(false)
-                .without_time(),
-        )
+        tracing_subscriber::fmt()
+            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            // this needs to be set to false, otherwise ANSI color codes will
+            // show up in a confusing manner in CloudWatch logs.
+            .with_ansi(false)
+            // disabling time is handy because CloudWatch will add the ingestion time.
+            .without_time()
+            .init();
+        info!("Configured logging for AWS Lambda Env");
     };
-
-    let subscriber = subscriber.with(host_subscriber);
-
-    tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
 }
 
 pub fn local_lambda() -> bool {

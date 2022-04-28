@@ -119,7 +119,7 @@ pub enum DecodeError {
     MissingFieldKey(String, KVPairs),
 }
 
-#[instrument(level = "debug")]
+#[instrument(level = "info")]
 pub fn decode(line: String) -> Result<Option<Metric>, DecodeError> {
     match parse(line)? {
         Some(ld) => match extract(&ld)? {
@@ -130,12 +130,12 @@ pub fn decode(line: String) -> Result<Option<Metric>, DecodeError> {
     }
 }
 
-#[instrument(level = "trace")]
+#[instrument(level = "info")]
 fn parse(line: String) -> Result<Option<LogData>, DecodeError> {
     parser::parse_line(line).map_err(DecodeError::ParseError)
 }
 
-#[instrument(level = "trace")]
+#[instrument(level = "info")]
 fn extract(ld: &LogData) -> Result<Option<Metric>, DecodeError> {
     if let Some(decoder) = find_decoder(ld) {
         let pairs = parser::parse_msg(&ld.msg)?;

@@ -1,13 +1,11 @@
-use std::str;
 
 use lambda_http::{
     service_fn,
-    Request, RequestExt,
+    Request,
     Response, IntoResponse,
     http::StatusCode};
 
-use logsnarf::utils;
-use logsnarf::decoder::decode;
+use logsnarf::{app, utils};
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -24,33 +22,23 @@ async fn main() -> Result<(), E> {
 }
 
 async fn handle_event(kinesis: &aws_sdk_kinesis::Client, req: Request) -> Result<impl IntoResponse, E> {
-    let _context = req.lambda_context();
-    let (parts, body) = req.into_parts();
+    let metrics = app::extract_metrics(req)?;
 
-    let token = parts.uri.path().split("/").last().unwrap();
-
-    let mut stream = body.split(|c| *c == b'\n');
-
-    let mut records: Vec<aws_sdk_kinesis::model::PutRecordsRequestEntry> = Vec::with_capacity(5);
-
-    while let Some(line) = stream.next() {
-        if let Ok(Some(metric)) = decode(str::from_utf8(line)?.to_string()) {
-            records.push(
+    let records: Vec<aws_sdk_kinesis::model::PutRecordsRequestEntry> = metrics.metrics.iter().map(|metric| { 
                 aws_sdk_kinesis::model::PutRecordsRequestEntry::builder()
                 .set_data(Some(metric.into()))
-                .set_partition_key(Some(token.to_string()))
+                .set_partition_key(Some(metrics.token.clone()))
                 .build()
-            )
-        }
+    }).collect();
+
+    if records.len() > 0 {
+        kinesis
+            .put_records()
+            .stream_name("logsnarf-test-stream")
+            .set_records(Some(records))
+            .send()
+            .await?;
     }
-
-    kinesis
-        .put_records()
-        .stream_name("logsnarf-test")
-        .set_records(Some(records))
-        .send()
-        .await?;
-
 
     Ok(Response::builder().status(StatusCode::ACCEPTED).body(()).unwrap())
 }
