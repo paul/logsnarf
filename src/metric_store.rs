@@ -7,7 +7,7 @@ use tokio::time::{self, Duration, Instant};
 use tracing::info;
 
 // use crate::Result;
-use crate::metric::Metric;
+use crate::Metric;
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -85,6 +85,7 @@ impl State {
         if entry.data.is_empty() {
             notify = true;
             let flush_at = Instant::now() + FLUSH_TIMEOUT;
+            info!("Setting flush timer {} {:?}", token, flush_at);
             self.flush_timers.insert(flush_at, token.clone());
         };
 
