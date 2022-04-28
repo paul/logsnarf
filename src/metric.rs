@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 use crate::parser::KVPairs;
 
@@ -11,7 +12,7 @@ pub type TagKey = String;
 pub type TagValue = String;
 pub type FieldKey = String;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum FieldValue {
     Boolean(bool),
     Float(f64, Option<String>),
@@ -22,7 +23,7 @@ pub enum FieldValue {
 pub type Tags = BTreeMap<TagKey, TagValue>;
 pub type Fields = BTreeMap<FieldKey, FieldValue>;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Metric {
     pub timestamp: DateTime<Utc>,
     pub name: String,
@@ -38,6 +39,12 @@ impl Metric {
             tags: to_tags(tags),
             fields: to_fields(fields),
         }
+    }
+}
+
+impl From<Metric> for aws_sdk_kinesis::types::Blob {
+    fn from(metric: Metric) -> Self {
+        Self::new(serde_json::to_string(&metric).unwrap())
     }
 }
 

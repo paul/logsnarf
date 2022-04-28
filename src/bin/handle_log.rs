@@ -1,7 +1,4 @@
-use std::sync::RwLock;
 use std::str;
-
-use tracing::info;
 
 use lambda_http::{
     service_fn,
@@ -9,12 +6,8 @@ use lambda_http::{
     Response, IntoResponse,
     http::StatusCode};
 
-use tokio::signal::unix::{signal, SignalKind};
-
 use logsnarf::utils;
 use logsnarf::decoder::decode;
-use logsnarf::metric::Metric;
-use logsnarf::metric_store::MetricStore;
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -22,27 +15,15 @@ type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 async fn main() -> Result<(), E> {
     utils::setup_tracing();
 
+    let aws_shared_config = aws_config::load_from_env().await;
+    let kinesis = aws_sdk_kinesis::Client::new(&aws_shared_config);
 
-    let store = MetricStore::new();
-    let store_ref = &store;
-
-    let mut shutdown = if utils::local_lambda() {
-        signal(SignalKind::interrupt())?
-    } else {
-        signal(SignalKind::terminate())?
-    };
-
-    tokio::select! {
-        _ = lambda_http::run(service_fn(move |event: Request| handle_event(store_ref.clone(), event))) => {},
-        _ = shutdown.recv() => {
-            flush_all(&store_ref).await?
-        },
-    }
+    lambda_http::run(service_fn(|event: Request| handle_event(&kinesis, event))).await?;
 
     Ok(())
 }
 
-async fn handle_event(store: &MetricStore, req: Request) -> Result<impl IntoResponse, E> {
+async fn handle_event(kinesis: &aws_sdk_kinesis::Client, req: Request) -> Result<impl IntoResponse, E> {
     let _context = req.lambda_context();
     let (parts, body) = req.into_parts();
 
@@ -50,20 +31,26 @@ async fn handle_event(store: &MetricStore, req: Request) -> Result<impl IntoResp
 
     let mut stream = body.split(|c| *c == b'\n');
 
-    let mut metrics: Vec<Metric> = Vec::with_capacity(5);
+    let mut records: Vec<aws_sdk_kinesis::model::PutRecordsRequestEntry> = Vec::with_capacity(5);
 
     while let Some(line) = stream.next() {
         if let Ok(Some(metric)) = decode(str::from_utf8(line)?.to_string()) {
-            metrics.push(metric);
+            records.push(
+                aws_sdk_kinesis::model::PutRecordsRequestEntry::builder()
+                .set_data(Some(metric.into()))
+                .set_partition_key(Some(token.to_string()))
+                .build()
+            )
         }
     }
 
-    store.push(token.to_owned(), metrics)?;
+    kinesis
+        .put_records()
+        .stream_name("logsnarf-test")
+        .set_records(Some(records))
+        .send()
+        .await?;
+
 
     Ok(Response::builder().status(StatusCode::ACCEPTED).body(()).unwrap())
-}
-
-async fn flush_all(store: &MetricStore) -> Result<(), E> {
-    store.flush_all()?;
-    Ok(())
 }

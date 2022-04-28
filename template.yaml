@@ -36,8 +36,16 @@ Resources:
     Metadata:
       BuildMethod: makefile
 
+  stream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
 Outputs:
   HandleLogUrl:
     Description: "API Gateway endpoint URL"
     Value:
       Fn::GetAtt: HandleLogFunctionUrl.FunctionUrl
+  StreamARN:
+    Description: "Stream ARN"
+    Value: !GetAtt stream.Arn
