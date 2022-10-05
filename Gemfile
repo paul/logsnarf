@@ -5,10 +5,16 @@ ruby File.read(".ruby-version").strip
 
 gem "falcon", "~> 0.42.3"
 
+gem "aws-sdk-dynamodb", "~> 1.77"
+
 gem "dry-events", "~> 0.3.0"
 gem "dry-monitor", "~> 0.6.3"
+gem "dry-struct", "~> 1.4"
 gem "dry-system", "~> 0.25.0"
 gem "zeitwerk", "~> 2.6"
+
+gem "console", "~> 1.15"
+gem "sentry-ruby", "~> 5.5"
 
 group :development do
   gem "pry", "~> 0.14"
@@ -41,4 +47,6 @@ group :development, :test do
   gem "rubocop",             "~> 1.36"
   gem "rubocop-performance", "~> 1.15"
   gem "rubocop-rspec",       "~> 2.13"
+
+  gem "amazing_print", "~> 1.4"
 end

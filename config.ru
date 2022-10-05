@@ -8,4 +8,5 @@ require_relative "system/import"
 App.finalize!
 
 use App[:rack_monitor]
-run App[:app]
+use App[:rack_notifier]
+run App[:application]
