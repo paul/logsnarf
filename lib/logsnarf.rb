@@ -44,7 +44,7 @@ module Logsnarf
             %w[source],
             %w[sample#load_avg_1m sample#load_avg_5m sample#load_avg_15m]),
     Decoder("heroku_router",
-            ->(log_data) { log_data.appname == "heroku" && log_data.procid = "router" },
+            ->(log_data) { log_data.appname == "heroku" && log_data.procid == "router" },
             %w[method host dyno status protocol],
             %w[connect service bytes]),
     Decoder("heroku_redis",
@@ -83,7 +83,6 @@ module Logsnarf
                sample#memory-free
                sample#memory-cached
                sample#memory-postgres
-               sample#wal-percentage-used
-            ]),
+               sample#wal-percentage-used]),
   ].freeze
 end
