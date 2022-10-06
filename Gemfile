@@ -5,21 +5,21 @@ ruby File.read(".ruby-version").strip
 
 gem "falcon", "~> 0.42.3"
 
+gem "console", "~> 1.15"
+gem "zeitwerk", "~> 2.6"
+
 gem "aws-sdk-dynamodb", "~> 1.77"
 
 gem "dry-events", "~> 0.3.0"
+gem "dry-monads", "~> 1.4"
 gem "dry-monitor", "~> 0.6.3"
 gem "dry-struct", "~> 1.4"
 gem "dry-system", "~> 0.25.0"
-gem "zeitwerk", "~> 2.6"
 
-gem "console", "~> 1.15"
 gem "sentry-ruby", "~> 5.5"
 
 group :development do
-  gem "pry", "~> 0.14"
-  gem "pry-byebug", "~> 3.10"
-  gem "pry-doc", "~> 1.3"
+  gem "debug", "~> 1.6"
 
   gem "bundler"
   gem "rake", "~> 13.0"

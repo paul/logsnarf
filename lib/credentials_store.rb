@@ -3,6 +3,7 @@
 require "amazing_print"
 
 class CredentialsStore
+  include Dry::Monads[:maybe]
   include Import[:logger, :dynamodb, :cache]
 
   def initialize(**deps)
@@ -21,6 +22,7 @@ class CredentialsStore
       logger.info "Another thread is fetching creds, will try again later"
       sleep 0.1
     end
+    item.creds
   end
 
   def try_get(token)
@@ -28,13 +30,17 @@ class CredentialsStore
     if item.nil? || item.expired?
       if @locks[token].try_lock
 
-        @cache[token] = fetch(token)
+        item = fetch(token)
+        @cache[token] = item
 
         @locks[token].unlock
+        item
       end
     else
       item
     end
+    # ensure
+    #   @locks[token].unlock
   end
 
   def fetch(token, now = Time.now)
@@ -44,9 +50,7 @@ class CredentialsStore
            .item
 
     logger.info "Done fetching creds for token #{token}"
-    creds = if data
-              Credentials.new(data)
-            end
+    creds = Maybe(data).fmap { |data| Credentials.new(data) }
 
     Item.new(creds, now)
   end

@@ -9,4 +9,4 @@ App.finalize!
 
 use App[:rack_monitor]
 use App[:rack_notifier]
-run App[:application]
+run App[:rack_app]

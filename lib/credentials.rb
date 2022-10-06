@@ -3,6 +3,7 @@
 require "dry-struct"
 
 class Credentials < Dry::Struct
+  extend Forwardable
   transform_keys(&:to_sym)
 
   attribute :name, Types::String
@@ -14,4 +15,6 @@ class Credentials < Dry::Struct
     attribute :type, Types::String
     attribute :url, Types::URL
   end
+
+  delegate [:type] => :credentials
 end

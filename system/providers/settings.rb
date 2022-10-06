@@ -8,10 +8,16 @@ App.register_provider(:settings, from: :dry_system) do
   end
 
   settings do
-    setting :credentials_cache_ttl, default: 5, constructor: Types::Integer
+    setting :sentry_dsn
+    setting :sentry_environments, default: %w[development production], constructor: Types::Array.of(Types::String)
 
-    setting :logger_level, default: :info, constructor: Types::Symbol
+    setting :logger_level, default: App.env == "production" ? :info : :debug, constructor: Types::Symbol
       .constructor { |value| value.to_s.downcase.to_sym }
       .enum(:trace, :unknown, :error, :fatal, :warn, :info, :debug)
+
+    setting :credentials_cache_ttl, default: 5, constructor: Types::Integer
+
+    setting :metric_buffer_flush_interval, default: 5, constructor: Types::Integer
+    setting :metric_buffer_max_size, default: 100, constructor: Types::Integer
   end
 end
