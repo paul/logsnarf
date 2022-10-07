@@ -31,16 +31,19 @@ class Parser
   def parse(io)
     scanner = StringScanner.new("")
     buffer = String.new
+    lines, bytes = 0, 0
     while chunk = io.gets
+      bytes += chunk.size
       buffer.concat(chunk)
       while idx = buffer.index(NEWLINE)
         line = buffer.slice!(0, idx + 1)
-        raise if line.empty?
+        lines += 1
 
         scanner.string = line
         yield parse_line(scanner)
       end
     end
+    [lines, bytes]
   end
 
   private

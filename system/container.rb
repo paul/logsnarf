@@ -5,6 +5,7 @@ require "dry/monads"
 require "dry/monads/do"
 require "dry/monitor/notifications"
 require "dry/system/container"
+
 require "amazing_print"
 
 class App < Dry::System::Container
@@ -12,6 +13,7 @@ class App < Dry::System::Container
   use :zeitwerk, debug: false
   use :logging
   use :monitoring
+  use :notifications
 
   configure do |config|
     config.component_dirs.add "lib" do |dir|

@@ -2,7 +2,7 @@
 
 module Clients
   class InfluxDbV1
-    include Import[:logger, :notifier, :http, encoder: "encoders.influx_db"]
+    include Import[:logger, :notifier, :notifications, :http, encoder: "encoders.influx_db"]
     class RequestError < StandardError
       attr_reader :response, :body
 
@@ -32,8 +32,7 @@ module Clients
 
       @task = Async do
         payload = { client: self.class.name, metrics:, body: }
-        begin
-          # instrumenter.instrument("client.write_metrics", payload) do |payload|
+        notifications.instrument("client.write_metrics", payload) do |payload|
           notifier.set_context(:request, { url: write_url, headers:, body: })
           response = http.post(write_url, headers, body)
           payload[:response] = response

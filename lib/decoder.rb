@@ -119,7 +119,8 @@ class HerokuRedis < Decoder
                   sample#memory-cached
                   sample#memory-redis
                   sample#hit-rate
-                  sample#evicted-keys]
+                  sample#evicted-keys
+                  sample#used_memory_over_limit ]
 
   def self.can_parse?(log_data)
     log_data.pairs["procid"] == "heroku-redis"
