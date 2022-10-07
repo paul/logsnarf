@@ -9,7 +9,7 @@ install -o root -g root -m 644 -v -D /tmp/templates/dnf.conf /etc/dnf/dnf.conf
 # dnf update --refresh -y
 
 dnf groupinstall -y "Development Tools"
-# dnf install -y git wget
+dnf install -y git openssl-devel
 
 groupadd logsnarf
 useradd \
@@ -19,6 +19,9 @@ useradd \
   --system logsnarf
 
 install -o logsnarf -g logsnarf -m 755 -v -D -d /var/www
+
+# Allow user to start systemd services at boot
+loginctl enable-linger username
 
 ## Caddy
 # wget -q https://github.com/caddyserver/caddy/releases/download/v2.0.0-beta10/caddy2_beta10_linux_amd64

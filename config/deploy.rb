@@ -57,23 +57,23 @@ append :linked_dirs, ".bundle"
 namespace :deploy do
   task :fix_permisssions do
     on roles(:app) do
-      execute "chgrp -R logsnarf /var/www/logsnarf"
-      execute "chgrp -R logsnarf #{release_path}"
+      # execute "chgrp -R logsnarf /var/www/logsnarf"
+      # execute "chgrp -R logsnarf #{release_path}"
     end
   end
 
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      execute "install -o root -g root -m 644 #{release_path}/ops/templates/logsnarf.service /etc/systemd/system/logsnarf.service"
-      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.service /etc/systemd/system/restart-logsnarf.service"
-      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.timer /etc/systemd/system/restart-logsnarf.timer"
-      execute "systemctl daemon-reload"
-      execute "systemctl enable restart-logsnarf.timer"
-      execute "systemctl restart restart-logsnarf.timer"
-      execute "systemctl enable logsnarf.service"
-      execute "systemctl restart logsnarf.service"
-      execute "systemctl status logsnarf.service"
+      execute "install -o logsnarf -g logsnarf -m 644 #{release_path}/ops/templates/logsnarf.service /var/www/logsnarf/.config/systemd/user/logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.service /var/www/logsnarf/.config/systemd/user/restart-logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.timer /var/www/logsnarf/.config/systemd/user/restart-logsnarf.timer"
+      execute "sudo -u logsnarf systemctl --user daemon-reload"
+      execute "sudo -u logsnarf systemctl --user enable restart-logsnarf.timer"
+      execute "sudo -u logsnarf systemctl --user restart restart-logsnarf.timer"
+      execute "sudo -u logsnarf systemctl --user enable logsnarf.service"
+      execute "sudo -u logsnarf systemctl --user restart logsnarf.service"
+      execute "sudo -u logsnarf systemctl --user status logsnarf.service"
     end
   end
 end
