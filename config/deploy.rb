@@ -4,9 +4,10 @@
 lock "~> 3.17.1"
 
 set :application, "logsnarf"
-set :repo_url, "https://git.sr.ht/~paul/logsnarf-rb-new"
+set :repo_url, "git@git.sr.ht:~paul/logsnarf-rb-new"
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+set :branch, "main"
 
 # Default deploy_to directory is /var/www/my_app_name
 set :deploy_to, "/var/www/logsnarf"
@@ -43,8 +44,8 @@ set :ssh_options, forward_agent: true
 
 # set :sentry_host, 'https://my-sentry.mycorp.com' # https://sentry.io by default
 # set :sentry_api_token, '0123456789abcdef0123456789abcdef'
-set :sentry_organization, "scalar"   # fetch(:application) by default
-set :sentry_project,      "logsnarf" # fetch(:application) by default
+set :sentry_organization, "scalar"     # fetch(:application) by default
+set :sentry_project,      "logsnarf-2" # fetch(:application) by default
 set :sentry_repo_integration, false
 # set :sentry_repo, 'my-org/my-proj' # computed from repo_url by default
 
@@ -54,6 +55,13 @@ after "deploy:published", "sentry:notice_deployment"
 append :linked_dirs, ".bundle"
 
 namespace :deploy do
+  task :fix_permisssions do
+    on roles(:app) do
+      execute "chgrp -R logsnarf /var/www/logsnarf"
+      execute "chgrp -R logsnarf #{release_path}"
+    end
+  end
+
   desc "Restart application"
   task :restart do
     on roles(:app) do
@@ -70,4 +78,5 @@ namespace :deploy do
   end
 end
 
+before "deploy:restart", "deploy:fix_permisssions"
 after "deploy:publishing", "deploy:restart"

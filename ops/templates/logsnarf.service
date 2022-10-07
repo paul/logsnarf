@@ -1,6 +1,6 @@
 [Unit]
 Description=Logsnarf App Server
-After=caddy2.target
+After=caddy.target
 After=syslog.target
 After=network.target
 

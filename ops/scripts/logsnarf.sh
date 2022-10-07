@@ -55,8 +55,8 @@ systemctl enable caddy.service
 dnf module -y reset ruby
 dnf module -y enable ruby:3.1
 dnf module -y install ruby:3.1/common
+dnf install -y ruby-devel
 
-which bundler
 gem install bundler
 # gem update --system
 
