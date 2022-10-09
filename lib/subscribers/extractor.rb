@@ -6,15 +6,15 @@ module Subscribers
 
     def on_extractor_extract(event)
       bytes, lines, metrics, time = event.payload.values_at(:bytes, :lines, :metrics, :time)
-      logger.debug "Received %s (%d lines) which parsed to %d metrics (%dms)" %
-                   [filesize(bytes), lines, metrics.size, time]
+      logger.info "Received %s (%d lines) which parsed to %d metrics (%dms)" %
+                  [filesize(bytes), lines, metrics.size, time]
     end
 
     def on_client_write_metrics(event)
       client, metrics, body, time = event.payload.values_at(:client, :metrics, :body, :time)
       logger
         .with(name: client)
-        .debug "Wrote %d metrics (%s) in %dms" % [metrics.size, filesize(body.bytesize), time]
+        .info "Wrote %d metrics (%s) in %dms" % [metrics.size, filesize(body.bytesize), time]
     end
 
     private

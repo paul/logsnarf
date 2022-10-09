@@ -15,9 +15,9 @@ App.register_provider(:settings, from: :dry_system) do
       .constructor { |value| value.to_s.downcase.to_sym }
       .enum(:trace, :unknown, :error, :fatal, :warn, :info, :debug)
 
-    setting :credentials_cache_ttl, default: 5, constructor: Types::Integer
+    setting :credentials_cache_ttl, default: 600, constructor: Types::Integer
 
-    setting :metric_buffer_flush_interval, default: 5, constructor: Types::Integer
+    setting :metric_buffer_flush_interval, default: 30, constructor: Types::Integer
     setting :metric_buffer_max_size, default: 100, constructor: Types::Integer
   end
 end
