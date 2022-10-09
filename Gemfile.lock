@@ -138,6 +138,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (7.0.1)
     openssl (3.0.1)
+    ox (2.14.11)
     parallel (1.22.1)
     parser (3.1.2.1)
       ast (~> 2.4.1)
@@ -222,6 +223,7 @@ PLATFORMS
 
 DEPENDENCIES
   amazing_print (~> 1.4)
+  async (~> 2.1)
   async-rspec (~> 1.16)
   aws-sdk-dynamodb (~> 1.77)
   bcrypt_pbkdf (~> 1.1)
@@ -242,6 +244,7 @@ DEPENDENCIES
   get_process_mem (~> 0.2)
   memory_profiler (~> 1.0)
   mwrap (~> 2.3)
+  ox (~> 2.14)
   rake (~> 13.0)
   reek (~> 6.1)
   rspec (~> 3.11)

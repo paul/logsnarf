@@ -2,42 +2,37 @@
 
 set -Eeuxo pipefail
 
-CENTOS=`rpm --eval '%{centos_ver}'`
-
 install -o root -g root -m 644 -v -D /tmp/templates/dnf.conf /etc/dnf/dnf.conf
 
 # dnf update --refresh -y
-
-dnf groupinstall -y "Development Tools"
-dnf install -y git openssl-devel
+# dnf groupinstall -y "Development Tools"
+dnf install -y gcc make glibc-devel \
+  git \
+  openssl-devel
 
 groupadd logsnarf
-useradd \
+adduser \
   -g logsnarf --no-user-group \
-  --home-dir /var/www --no-create-home \
   --shell /usr/sbin/nologin \
-  --system logsnarf
-
-install -o logsnarf -g logsnarf -m 755 -v -D -d /var/www
+  logsnarf
+install -o logsnarf -g logsnarf -m 755 -v -D -d /opt/logsnarf
 
 # Allow user to start systemd services at boot
-loginctl enable-linger username
+loginctl enable-linger logsnarf
 
 ## Caddy
-# wget -q https://github.com/caddyserver/caddy/releases/download/v2.0.0-beta10/caddy2_beta10_linux_amd64
-# install -o root -g root -m 755 -v caddy2_beta10_linux_amd64 /usr/local/bin/caddy2
 dnf install -y 'dnf-command(copr)'
 dnf copr enable -y @caddy/caddy epel-9-$(arch)
 dnf install -y caddy
 
-which caddy
-# setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy
+# which caddy
+# # setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy
 
 install -o root -g root -m 644 -v -D /tmp/templates/Caddyfile /etc/caddy/Caddyfile
 install -o root -g logsnarf -m 0770 -v -d /etc/ssl/caddy
 
 # Copy letsencrypt certs in place to bootstrap caddy. TODO store these in s3/consul/do somehow
-find /tmp/templates/acme -type f -exec install -o logsnarf -g logsnarf -m 600 -v -D "{}" "/var/www/.local/share/caddy/acme/{}" \;
+# find /tmp/templates/acme -type f -exec install -o logsnarf -g logsnarf -m 600 -v -D "{}" "/var/www/.local/share/caddy/acme/{}" \;
 
 # install -o root -g root -m 644 /tmp/templates/caddy2.service /etc/systemd/system/caddy2.service
 
@@ -60,8 +55,14 @@ dnf module -y enable ruby:3.1
 dnf module -y install ruby:3.1/common
 dnf install -y ruby-devel
 
+install -o root -g root -m 644 -v -D /tmp/templates/gemrc /etc/gemrc
 gem install bundler
 # gem update --system
+
+# # try installing some gems
+# gem install io-event
+# gem install ox
+# gem install async
 
 install -o root -g root -m 644 /tmp/templates/logsnarf.service /etc/systemd/system/logsnarf.service
 install -o root -g root -m 644 /tmp/templates/restart-logsnarf.service /etc/systemd/system/restart-logsnarf.service

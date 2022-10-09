@@ -5,6 +5,9 @@ ruby File.read(".ruby-version").strip
 
 gem "falcon", "~> 0.42.3"
 
+gem "async", "~> 2.1"
+gem "ox", "~> 2.14" # Async needs an XML library
+
 gem "console", "~> 1.15"
 gem "zeitwerk", "~> 2.6"
 

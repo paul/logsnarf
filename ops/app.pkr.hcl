@@ -13,8 +13,13 @@ source "digitalocean" "do" {
   ssh_username  = "root"
 }
 
+source "docker" "docker" {
+  image = "centos:stream9"
+  commit = "true"
+}
+
 build {
-  sources = ["source.digitalocean.do"]
+  sources = ["source.digitalocean.do", "source.docker.docker"]
 
   provisioner "file" {
     destination = "/tmp"

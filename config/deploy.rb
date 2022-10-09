@@ -10,7 +10,7 @@ set :repo_url, "git@git.sr.ht:~paul/logsnarf-rb-new"
 set :branch, "main"
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, "/var/www/logsnarf"
+set :deploy_to, "/opt/logsnarf"
 
 # Default value for :format is :airbrussh.
 # set :format, :airbrussh
@@ -65,15 +65,15 @@ namespace :deploy do
   desc "Restart application"
   task :restart do
     on roles(:app) do
-      execute "install -o logsnarf -g logsnarf -m 644 #{release_path}/ops/templates/logsnarf.service /var/www/logsnarf/.config/systemd/user/logsnarf.service"
-      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.service /var/www/logsnarf/.config/systemd/user/restart-logsnarf.service"
-      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.timer /var/www/logsnarf/.config/systemd/user/restart-logsnarf.timer"
-      execute "sudo -u logsnarf systemctl --user daemon-reload"
-      execute "sudo -u logsnarf systemctl --user enable restart-logsnarf.timer"
-      execute "sudo -u logsnarf systemctl --user restart restart-logsnarf.timer"
-      execute "sudo -u logsnarf systemctl --user enable logsnarf.service"
-      execute "sudo -u logsnarf systemctl --user restart logsnarf.service"
-      execute "sudo -u logsnarf systemctl --user status logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/logsnarf.service /etc/systemd/system/logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.service /etc/systemd/system/restart-logsnarf.service"
+      execute "install -o root -g root -m 644 #{release_path}/ops/templates/restart-logsnarf.timer /etc/systemd/system/restart-logsnarf.timer"
+      execute "systemctl daemon-reload"
+      execute "systemctl enable restart-logsnarf.timer"
+      execute "systemctl restart restart-logsnarf.timer"
+      execute "systemctl enable logsnarf.service"
+      execute "systemctl restart logsnarf.service"
+      execute "systemctl status logsnarf.service"
     end
   end
 end

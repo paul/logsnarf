@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "amazing_print"
-
 class CredentialsStore
   include Dry::Monads[:maybe]
   include Import[:logger, :dynamodb, :cache]
