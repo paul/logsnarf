@@ -17,7 +17,7 @@ class CredentialsStore
       logger.info "Got creds" unless item.nil?
       break item unless item.nil?
 
-      logger.info "Another thread is fetching creds, will try again later"
+      logger.debug "Another thread is fetching creds, will try again later"
       sleep 0.1
     end
     item.creds
