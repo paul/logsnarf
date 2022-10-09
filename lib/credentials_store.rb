@@ -14,7 +14,7 @@ class CredentialsStore
     item = nil
     loop do
       item = try_get(token)
-      logger.info "Got creds" unless item.nil?
+      logger.debug "Got creds" unless item.nil?
       break item unless item.nil?
 
       logger.debug "Another thread is fetching creds, will try again later"
