@@ -29,6 +29,7 @@ dnf install -y caddy
 # # setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy
 
 install -o root -g root -m 644 -v -D /tmp/templates/Caddyfile /etc/caddy/Caddyfile
+install -o root -g root -m 644 -v -D /tmp/templates/sysctl-caddy.conf /etc/sysctl.d/50-caddy.conf
 install -o root -g logsnarf -m 0770 -v -d /etc/ssl/caddy
 
 # Copy letsencrypt certs in place to bootstrap caddy. TODO store these in s3/consul/do somehow
