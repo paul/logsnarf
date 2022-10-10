@@ -10,7 +10,7 @@ App.register_provider(:settings, from: :dry_system) do
   settings do
     setting :sentry_dsn
     setting :sentry_environments, default: %w[development production], constructor: Types::Array.of(Types::String)
-    setting :sentry_sample_rate, default: "0.1", constructor: Types::Coercible::Float
+    setting :sentry_sample_rate, default: "0.001", constructor: Types::Coercible::Float
 
     setting :logger_level, default: App.env == "production" ? :info : :debug, constructor: Types::Coercible::Symbol
       .constructor { |value| value.to_s.downcase.to_sym }
