@@ -42,8 +42,6 @@ class CredentialsStore
   end
 
   def fetch(token, now = Time.now)
-    txn = Sentry.get_current_scope.get_transaction
-    span = txn.start_child(op: :fetch_credentials)
     logger.info "Fetching creds for token #{token}"
     data = @dynamodb
            .get_item(table_name: "logsnarf_config", key: { token: })
@@ -52,9 +50,7 @@ class CredentialsStore
     logger.info "Done fetching creds for token #{token}"
     creds = Maybe(data).fmap { |data| Credentials.new(data) }
 
-    item = Item.new(creds, now)
-    span.finish
-    item
+    Item.new(creds, now)
   end
 
   class Item

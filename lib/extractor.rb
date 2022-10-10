@@ -5,25 +5,19 @@ class Extractor
   include Dry::Monads[:result]
 
   def extract(io)
-    txn = notifier.get_current_scope.get_transaction
     metrics = []
-    txn.start_child(op: :extract) do |span|
-      notifications.instrument("extractor.extract", {}) do |payload|
-        lines, bytes = parser.parse(io) do |log_data|
-          metric = decoder.decode(log_data)
-          next unless metric
+    notifications.instrument("extractor.extract", {}) do |payload|
+      lines, bytes = parser.parse(io) do |log_data|
+        metric = decoder.decode(log_data)
+        next unless metric
 
-          if metric.complete?
-            metrics << metric
-          else
-            logger.info self, "Found a line I expected to decode, but didn't get a complete metric\n#{log_data.inspect}\n#{metric.inspect}"
-          end
-        end
-        payload.merge!(lines:, bytes:, metrics:)
-        { lines:, bytes:, metrics: metrics.size }.each do |key, val|
-          span.set_data(key, val)
+        if metric.complete?
+          metrics << metric
+        else
+          logger.info self, "Found a line I expected to decode, but didn't get a complete metric\n#{log_data.inspect}\n#{metric.inspect}"
         end
       end
+      payload.merge!(lines:, bytes:, metrics:)
     end
     Success(metrics)
   end

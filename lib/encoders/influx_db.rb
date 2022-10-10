@@ -6,11 +6,7 @@ module Encoders
 
     NL = "\n"
     def encode(metrics)
-      txn = notifier.get_current_scope.get_transaction
-      span = txn.start_child(op: :encode)
-      text = metrics.map { |metric| Encoder.new(metric).to_s }.join(NL)
-      span.finish
-      text
+      metrics.map { |metric| Encoder.new(metric).to_s }.join(NL)
     end
 
     class Encoder
