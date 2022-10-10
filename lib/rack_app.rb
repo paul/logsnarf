@@ -6,13 +6,14 @@ class RackApp
 
   INGRESS = "ingress"
   HEADERS = [].freeze
+  BAD_CREDENTIALS = ["who dis?"].freeze
   BODY = [""].freeze
   def call(env)
     _, endpoint, token = *env[Rack::PATH_INFO].split("/", 3)
 
     return [404, HEADERS, BODY] unless endpoint == INGRESS
 
-    case application.ingress(token, env[Rack::RACK_INPUT])
+    case x = application.ingress(token, env[Rack::RACK_INPUT])
     in Success(_) | Success()
       [204, HEADERS, BODY]
     in Failure(:credentials)

@@ -14,7 +14,8 @@ App.register_provider :sentry do
       sentry.enabled_environments = App[:settings].sentry_environments
       sentry.environment = App.env
       sentry.logger = App[:logger]
-      sentry.sample_rate = 1.0
+
+      sentry.traces_sample_rate = App[:settings].sentry_sample_rate
     end
 
     register(:rack_notifier, Sentry::Rack::CaptureExceptions)

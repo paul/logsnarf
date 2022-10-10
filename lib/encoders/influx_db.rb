@@ -2,9 +2,15 @@
 
 module Encoders
   class InfluxDb
+    include Import[:notifier]
+
     NL = "\n"
     def encode(metrics)
-      metrics.map { |metric| Encoder.new(metric).to_s }.join(NL)
+      txn = notifier.get_current_scope.get_transaction
+      span = txn.start_child(op: :encode)
+      text = metrics.map { |metric| Encoder.new(metric).to_s }.join(NL)
+      span.finish
+      text
     end
 
     class Encoder
