@@ -27,18 +27,18 @@ class CredentialsStore
     item = @cache[token]
     if item.nil? || item.expired?
       if @locks[token].try_lock
+        begin
+          item = fetch(token)
+          @cache[token] = item
 
-        item = fetch(token)
-        @cache[token] = item
-
-        # @locks[token].unlock
-        item
+          item
+        ensure
+          @locks[token].unlock
+        end
       end
     else
       item
     end
-  ensure
-    @locks[token]&.unlock
   end
 
   def fetch(token, now = Time.now)
