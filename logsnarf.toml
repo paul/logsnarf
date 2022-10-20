@@ -1,0 +1,27 @@
+[daemon]
+#http_port = 42080
+#syslog_port = 42514
+
+[logging]
+#level = "debug"
+#output = "STDOUT"
+
+[tsdb]
+type = "influxdb_v1"
+url = "http://localhost:8086"
+
+[[rules]]
+name = "heroku_dyno_load"
+tag_names = ["source"]
+field_names = [ 
+    "sample#load_avg_1m",
+    "sample#load_avg_5m",
+    "sample#load_avg_15m",
+]
+matcher = {appname = "heroku", tuples = ["sample#load_avg_1m"]}
+
+[[rules]]
+name = "heroku_router"
+tag_names = ["method", "host", "dyno", "status", "protocol"]
+field_names = ["connect", "service", "bytes"]
+matcher = {appname = "heroku", procid = "router"}

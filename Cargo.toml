@@ -1,0 +1,27 @@
+[package]
+name = "logsnarf"
+version = "0.1.0"
+edition = "2021"
+authors = ["Paul Sadauskas <paul@sadauskas.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# Util
+chrono = {version = "0.4", features = ["serde"]}
+serde_derive = "1.0.8"
+serde = "1.0.8"
+
+# CLI
+clap = {version = "4.0.10", features = ["derive", "unicode"]}
+config = "0.13"
+xdg = "2.4"
+
+# instrumentation
+console-subscriber = "0.1.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-opentelemetry = "0.18"
+tracing-futures = "0.2"
+tracing-tree = "0.2"
