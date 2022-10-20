@@ -14,7 +14,7 @@ serde_derive = "1.0.8"
 serde = "1.0.8"
 
 # CLI
-clap = {version = "4.0.10", features = ["derive", "unicode"]}
+clap = {version = "4.0.10", features = ["derive", "unicode", "cargo", "wrap_help"]}
 config = "0.13"
 xdg = "2.4"
 
@@ -25,3 +25,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-opentelemetry = "0.18"
 tracing-futures = "0.2"
 tracing-tree = "0.2"
+
+# errors
+anyhow = "1.0"
+exitcode = "1.1"
+thiserror = "1.0"
