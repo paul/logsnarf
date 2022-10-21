@@ -168,40 +168,40 @@ mod tests {
         assert_eq!(r.msg, "at=info method=GET".to_string());
     }
 
-    #[test]
-    fn test_it_parses_samples() {
-        let names = [
-            "dyno_load.log",
-            "dyno_mem.log",
-            "postgres.log",
-            "redis.log",
-            "router.log",
-        ];
+    // #[test]
+    // fn test_it_parses_samples() {
+    //     let names = [
+    //         "dyno_load.log",
+    //         "dyno_mem.log",
+    //         "postgres.log",
+    //         "redis.log",
+    //         "router.log",
+    //     ];
 
-        for name in names {
-            let file = File::open(format!("samples/{}", name))
-                .expect(&format!("Cannot find file: {}", name));
-            let lines = io::BufReader::new(file).lines();
-            for line in lines {
-                if let Ok(l) = line {
-                    assert!(parse_line(&l).is_ok());
-                }
-            }
-        }
-    }
+    //     for name in names {
+    //         let file = File::open(format!("samples/{}", name))
+    //             .expect(&format!("Cannot find file: {}", name));
+    //         let lines = io::BufReader::new(file).lines();
+    //         for line in lines {
+    //             if let Ok(l) = line {
+    //                 assert!(parse_line(&l).is_ok());
+    //             }
+    //         }
+    //     }
+    // }
 
-    #[test]
-    fn test_it_parses_a_huge_file() {
-        let file =
-            File::open("samples/staging.log").expect(&format!("Cannot find file: staging.log"));
-        let lines = io::BufReader::new(file).lines();
+    // #[test]
+    // fn test_it_parses_a_huge_file() {
+    //     let file =
+    //         File::open("samples/staging.log").expect(&format!("Cannot find file: staging.log"));
+    //     let lines = io::BufReader::new(file).lines();
 
-        for line in lines {
-            if let Ok(l) = line {
-                assert!(parse_line(&l).is_ok());
-            }
-        }
-    }
+    //     for line in lines {
+    //         if let Ok(l) = line {
+    //             assert!(parse_line(&l).is_ok());
+    //         }
+    //     }
+    // }
 
     #[test]
     fn test_it_parses_missing_timestamp() {
@@ -209,6 +209,13 @@ mod tests {
 
         let r = parse_line(line).expect("Should parse the line");
         assert!(r.is_none())
+    }
+
+    #[test]
+    fn test_malformed_input() {
+        let line = r#"8:28:00.089034+00:00 host heroku router - at=info method=GET"#;
+        let r = parse_line(line);
+        assert!(r.is_err())
     }
 
     #[test]

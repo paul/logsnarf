@@ -33,6 +33,10 @@ impl Decoder {
         Self { metric_decoder }
     }
 
+    pub fn name(&self) -> &String {
+        &self.metric_decoder.name
+    }
+
     pub fn matches(&self, log_data: &LogData) -> bool {
         self.metric_decoder
             .matcher

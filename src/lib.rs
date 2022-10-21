@@ -5,5 +5,6 @@ pub mod util;
 pub mod metric;
 pub mod settings;
 
+pub mod app;
 pub mod decoder;
 pub mod parser;

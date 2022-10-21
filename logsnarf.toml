@@ -22,7 +22,7 @@ field_names = [
 
 [[metrics]]
 name = "heroku_dyno_memory"
-matcher = { appname = "heroku", procid = "sample#memory_total" }
+matcher = { appname = "heroku", msg = { contains = "sample#memory_total" } }
 tag_names = ["source"]
 field_names = [
     "sample#memory_cache",
