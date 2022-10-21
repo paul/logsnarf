@@ -8,50 +8,52 @@ use crate::metric;
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct Daemon {
+pub struct Daemon {
     http_port: Option<u16>,
     syslog_port: Option<u16>,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct Logging {
+pub struct Logging {
     level: String,
     output: String,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
-struct Tsdb {
+pub struct Tsdb {
     #[serde(rename(deserialize = "type"))]
     type_: String,
     url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[allow(unused)]
 #[serde(untagged)]
-enum Matcher {
+pub enum Matcher {
     String(String),
-    List(Vec<String>),
+    Condition(BTreeMap<String, String>),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[allow(unused)]
-struct Rule {
-    name: metric::Name,
-    tag_names: Vec<metric::TagKey>,
-    field_names: Vec<metric::FieldKey>,
-    matcher: BTreeMap<String, Matcher>,
+pub struct MetricDecoder {
+    pub name: metric::Name,
+    pub tag_names: Vec<metric::TagKey>,
+    pub field_names: Vec<metric::FieldKey>,
+    pub matcher: BTreeMap<String, Matcher>,
 }
+
+pub type MetricDecoders = Vec<MetricDecoder>;
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
 pub struct Settings {
-    daemon: Daemon,
-    logging: Logging,
-    tsdb: Tsdb,
-    rules: Vec<Rule>,
+    pub daemon: Daemon,
+    pub logging: Logging,
+    pub tsdb: Tsdb,
+    pub metrics: MetricDecoders,
 }
 
 impl Settings {

@@ -1,17 +1,17 @@
 use thiserror::Error;
 
-// use crate::{credentials, decoder, parser};
+use crate::{decoder, parser};
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
     Io(#[from] ::std::io::Error),
 
-    // #[error(transparent)]
-    // ParseError(#[from] parser::ParseError),
+    #[error(transparent)]
+    ParseError(#[from] parser::ParseError),
 
-    // #[error(transparent)]
-    // DecodeError(#[from] decoder::DecodeError),
+    #[error(transparent)]
+    DecodeError(#[from] decoder::DecodeError),
 
     // #[error(transparent)]
     // CredentialsStoreError(#[from] credentials::CredentialsStoreError),

@@ -9,15 +9,16 @@ mod parser;
 
 use cli::{Cli, Commands};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     util::setup()?;
     let settings = Settings::new()?;
 
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Parse { file } => parser::Parser::new(settings).parse(file),
-        Commands::Server => Ok(()),
+        Commands::Parse { file } => parser::Parser::new(settings).parse(file).await?,
+        Commands::Server => (),
     };
 
     util::teardown()?;
