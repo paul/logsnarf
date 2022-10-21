@@ -1,5 +1,3 @@
-use tracing::debug;
-
 use clap::Parser;
 
 use logsnarf::{settings::Settings, util};

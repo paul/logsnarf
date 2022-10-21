@@ -1,25 +1,27 @@
 use std::error::Error;
 
+use tracing_forest::ForestLayer;
 use tracing_subscriber::{
     layer::SubscriberExt, registry::Registry, util::SubscriberInitExt, EnvFilter,
 };
-use tracing_tree::HierarchicalLayer;
 
 pub fn setup() -> Result<(), Box<dyn Error>> {
     // let tracer =
     //     opentelemetry_jaeger::new_pipeline().install_batch(opentelemetry::runtime::Tokio)?;
     // let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    let layer = HierarchicalLayer::default()
-        .with_ansi(true)
-        .with_targets(true)
-        .with_bracketed_fields(true);
-
     Registry::default()
-        .with(layer)
+        .with(ForestLayer::default())
         .with(EnvFilter::from_default_env())
         // .with(telemetry)
         .init();
+
+    // tracing_subscriber::fmt()
+    //     .compact()
+    //     // enable everything
+    //     .with_max_level(tracing::Level::DEBUG)
+    //     // sets this to be the default, global collector for this application.
+    //     .init();
 
     Ok(())
 }

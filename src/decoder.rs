@@ -2,12 +2,13 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use tracing::instrument;
 
-use crate::metric::{Metric, Name};
+use crate::metric::Metric;
 use crate::{
     parser::{self, KVPairs, LogData},
     settings::{Matcher, MetricDecoder, MetricDecoders},
 };
 
+#[derive(Debug)]
 pub struct Decoder {
     metric_decoder: MetricDecoder,
 }
@@ -57,6 +58,7 @@ impl Decoder {
     }
 }
 
+#[instrument(name = "configure_decoders", level = "trace")]
 pub fn build_decoders(metric_decoders: &MetricDecoders) -> Vec<Decoder> {
     metric_decoders
         .iter()

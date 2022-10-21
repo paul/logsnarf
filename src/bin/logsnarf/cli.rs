@@ -1,4 +1,4 @@
-use clap::{crate_name, Args, Parser, Subcommand};
+use clap::{crate_name, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = crate_name!(), author, version, about, long_about = None)]

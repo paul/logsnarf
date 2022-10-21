@@ -30,12 +30,8 @@ pub struct LogData {
 
 pub type KVPairs = BTreeMap<String, String>;
 
-// Quickly parses a syslog-ish line into LogData
-pub fn parse_line<S: AsRef<str>>(s: S) -> ParseResult<Option<LogData>> {
-    parse_line_s(s.as_ref())
-}
-
-fn parse_line_s(m: &str) -> ParseResult<Option<LogData>> {
+/// Quickly parses a syslog-ish line into LogData
+pub fn parse_line(m: &str) -> ParseResult<Option<LogData>> {
     let mut rest = m;
 
     rest = skip_to_after('>', rest)?;
