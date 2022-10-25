@@ -32,6 +32,10 @@ pub type KVPairs = BTreeMap<String, String>;
 
 /// Quickly parses a syslog-ish line into LogData
 pub fn parse_line(m: &str) -> ParseResult<Option<LogData>> {
+    if m.is_empty() {
+        return Ok(None);
+    }
+
     let mut rest = m;
 
     rest = skip_to_after('>', rest)?;
@@ -216,6 +220,13 @@ mod tests {
         let line = r#"8:28:00.089034+00:00 host heroku router - at=info method=GET"#;
         let r = parse_line(line);
         assert!(r.is_err())
+    }
+
+    #[test]
+    fn test_blank_link() {
+        let line = r#""#;
+        let r = parse_line(line).expect("Should parse a blank line");
+        assert!(r.is_none())
     }
 
     #[test]

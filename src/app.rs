@@ -12,6 +12,7 @@ use crate::{
     decoder::{self, Decoder},
     error::Result,
     metric::Metric,
+    metric_writer::{self, MetricWriter},
     parser::{self, LogData},
     record_stream::RecordStream,
     settings::Settings,
@@ -31,7 +32,8 @@ impl App {
 
     #[instrument(skip(self, data), fields(bytes, lines, metrics))]
     pub async fn extract(&self, data: impl AsyncRead + std::marker::Unpin) -> Result<()> {
-        let mut metrics: Vec<Metric> = Vec::new();
+        // let mut metrics: Vec<Metric> = Vec::new();
+        let mut writer = metric_writer::build(&self.settings.tsdb);
 
         let mut line_cnt: u64 = 0;
         let mut metric_cnt: u64 = 0;
@@ -45,7 +47,7 @@ impl App {
             match self.metric_from_line(line.as_ref()) {
                 Ok(Some(metric)) => {
                     metric_cnt += 1;
-                    metrics.push(metric);
+                    writer.write(metric);
                 }
                 Ok(None) => {}
                 Err(_e) => {
@@ -63,6 +65,9 @@ impl App {
             "Consumed {:?} bytes, in {} lines, extracted {} metrics",
             bytes, line_cnt, metric_cnt
         );
+
+        writer.flush().await?;
+
         Ok(())
     }
 
@@ -80,7 +85,7 @@ impl App {
     #[instrument]
     fn parse_line(line: &str) -> Result<Option<LogData>> {
         Ok(parser::parse_line(line).map_err(|e| {
-            tracing::error!("Problem parsing line: {}", e);
+            tracing::warn!("Problem parsing line: {}", e);
             e
         })?)
     }
@@ -93,7 +98,7 @@ impl App {
     #[instrument]
     fn decode_metric(decoder: &Decoder, ld: &LogData) -> Result<Option<Metric>> {
         Ok(decoder.decode(&ld).map_err(|e| {
-            tracing::error!("Problem decoding log message: {}", e);
+            tracing::warn!("Problem decoding log message: {}", e);
             e
         })?)
     }

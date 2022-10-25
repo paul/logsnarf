@@ -7,7 +7,7 @@
 #output = "STDOUT"
 
 [tsdb]
-type = "influxdb_v1"
+type = "InfluxdbV1"
 url = "http://localhost:8086"
 
 [[metrics]]

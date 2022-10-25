@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{decoder, parser};
+use crate::{decoder, metric_writer, parser};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -15,9 +15,9 @@ pub enum Error {
 
     // #[error(transparent)]
     // CredentialsStoreError(#[from] credentials::CredentialsStoreError),
+    #[error(transparent)]
+    AdapterError(#[from] metric_writer::WriterError),
 
-    // #[error(transparent)]
-    // AdapterError(#[from] influx_db_v1_adapter::AdapterError),
     #[error("{0}")]
     Msg(String),
 }

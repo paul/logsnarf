@@ -7,4 +7,5 @@ pub mod settings;
 
 pub mod app;
 pub mod decoder;
+pub mod metric_writer;
 pub mod parser;

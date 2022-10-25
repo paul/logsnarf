@@ -4,7 +4,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde_derive::Deserialize;
 use xdg;
 
-use crate::metric;
+use crate::{metric, metric_writer};
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
@@ -20,12 +20,18 @@ pub struct Logging {
     output: String,
 }
 
+// #[derive(Debug, Deserialize)]
+// #[allow(unused)]
+// pub struct Tsdb {
+//     #[serde(rename(deserialize = "type"))]
+//     pub type_: String,
+//     pub url: String,
+// }
+
 #[derive(Debug, Deserialize)]
-#[allow(unused)]
-pub struct Tsdb {
-    #[serde(rename(deserialize = "type"))]
-    type_: String,
-    url: String,
+#[serde(tag = "type")]
+pub enum TsdbCredentials {
+    InfluxdbV1(metric_writer::influxdb_v1::Credentials),
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -52,7 +58,7 @@ pub type MetricDecoders = Vec<MetricDecoder>;
 pub struct Settings {
     pub daemon: Daemon,
     pub logging: Logging,
-    pub tsdb: Tsdb,
+    pub tsdb: TsdbCredentials,
     pub metrics: MetricDecoders,
 }
 
