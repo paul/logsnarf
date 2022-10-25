@@ -1,7 +1,7 @@
 use tokio::fs::File;
 use tokio::io::BufReader;
 
-use tracing::{debug, debug_span, instrument, trace, trace_span};
+use tracing::instrument;
 
 use logsnarf::{app::App, error::Result, settings::Settings};
 
@@ -15,7 +15,7 @@ impl Parser {
         Self { app }
     }
 
-    #[instrument(name = "Parser::parse", level = "debug", skip(self))]
+    #[instrument(name = "Parser::parse", skip(self))]
     pub async fn parse(&self, filename: String) -> Result<()> {
         let file = File::open(&filename).await?;
         let data = BufReader::new(file);

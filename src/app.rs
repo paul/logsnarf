@@ -1,14 +1,12 @@
-use std::sync::atomic::AtomicUsize;
-use std::sync::Arc;
+use std::sync::{
+    atomic::{self, AtomicUsize},
+    Arc,
+};
 
 use tokio::io::AsyncRead;
 use tokio_stream::StreamExt;
 use tokio_util::codec::{FramedRead, LinesCodec};
-use tracing::{
-    debug, debug_span,
-    field::{self, Empty},
-    instrument, trace, trace_span, warn,
-};
+use tracing::{debug, instrument};
 
 use crate::{
     decoder::{self, Decoder},
@@ -31,7 +29,7 @@ impl App {
         Self { settings, decoders }
     }
 
-    #[instrument(level = "debug", skip(self, data))]
+    #[instrument(skip(self, data), fields(bytes, lines, metrics))]
     pub async fn extract(&self, data: impl AsyncRead + std::marker::Unpin) -> Result<()> {
         let mut metrics: Vec<Metric> = Vec::new();
 
@@ -50,11 +48,14 @@ impl App {
                     metrics.push(metric);
                 }
                 Ok(None) => {}
-                Err(e) => warn!("Problem parsing line: {}\n{}", e, line),
+                Err(_e) => {
+                    // tracing::error!("Problem parsing line: {}\n{}", e, line);
+                    // sentry::capture_error(&e);
+                }
             }
         }
 
-        tracing::Span::current().record("bytes", field::debug(&bytes));
+        tracing::Span::current().record("bytes", bytes.load(atomic::Ordering::Relaxed));
         tracing::Span::current().record("lines", line_cnt);
         tracing::Span::current().record("metrics", metric_cnt);
 
@@ -65,34 +66,35 @@ impl App {
         Ok(())
     }
 
-    #[instrument(level = "debug", skip(self), fields(message, metric))]
+    #[instrument(skip(self))]
     fn metric_from_line(&self, line: &str) -> Result<Option<Metric>> {
         Ok(Self::parse_line(line)?.and_then(|ld| {
-            tracing::Span::current().record("message", field::debug(&ld));
-            trace!("message = {:?}", &ld);
             Self::find_decoder(&self.decoders, &ld).and_then(|decoder| {
-                trace!("decoder = {}", decoder.name());
-                Self::decode_metric(&decoder, &ld).ok()?.and_then(|metric| {
-                    tracing::Span::current().record("metric", field::debug(&metric));
-                    trace!("metric = {:?}", &metric);
-                    Some(metric)
-                })
+                Self::decode_metric(&decoder, &ld)
+                    .ok()?
+                    .and_then(|metric| Some(metric))
             })
         }))
     }
 
-    #[instrument(name = "parse", level = "trace")]
+    #[instrument]
     fn parse_line(line: &str) -> Result<Option<LogData>> {
-        Ok(parser::parse_line(line)?)
+        Ok(parser::parse_line(line).map_err(|e| {
+            tracing::error!("Problem parsing line: {}", e);
+            e
+        })?)
     }
 
-    #[instrument(level = "trace")]
+    #[instrument]
     fn find_decoder<'a>(decoders: &'a Vec<Decoder>, ld: &'a LogData) -> Option<&'a Decoder> {
         decoders.iter().find(|decoder| decoder.matches(&ld))
     }
 
-    #[instrument(level = "trace")]
+    #[instrument]
     fn decode_metric(decoder: &Decoder, ld: &LogData) -> Result<Option<Metric>> {
-        Ok(decoder.decode(&ld)?)
+        Ok(decoder.decode(&ld).map_err(|e| {
+            tracing::error!("Problem decoding log message: {}", e);
+            e
+        })?)
     }
 }

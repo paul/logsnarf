@@ -9,7 +9,7 @@ use cli::{Cli, Commands};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    util::setup()?;
+    let _guard = util::setup()?;
     let settings = Settings::new()?;
 
     let cli = Cli::parse();
