@@ -41,7 +41,7 @@ The nature of this results in the following challenges that have to be handled:
 
 ## Implementations
 
-The reference implementation is in Ruby, and has seen production use for several years. The other implementations are in various states of completion, the intent being learning the language and it capabilities rather than being a production-quality application.
+The reference implementation is in Ruby, and has seen production use for several years. The other implementations are in various states of completion, the intent being learning the language and its capabilities rather than being a production-quality application.
 
 
 
