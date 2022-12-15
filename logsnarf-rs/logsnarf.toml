@@ -1,0 +1,86 @@
+[daemon]
+#http_port = 42080
+#syslog_port = 42514
+
+[logging]
+#level = "debug"
+#output = "STDOUT"
+
+[tsdb]
+type = "InfluxdbV1"
+url = "http://localhost:8086"
+
+[[metrics]]
+name = "heroku_dyno_load"
+matcher = { appname = "heroku", msg = { contains = "sample#load_avg_1m" } }
+tag_names = ["source"]
+field_names = [
+    "sample#load_avg_1m",
+    "sample#load_avg_5m",
+    "sample#load_avg_15m",
+]
+
+[[metrics]]
+name = "heroku_dyno_memory"
+matcher = { appname = "heroku", msg = { contains = "sample#memory_total" } }
+tag_names = ["source"]
+field_names = [
+    "sample#memory_cache",
+    "sample#memory_pgpgin",
+    "sample#memory_pgpgout",
+    "sample#memory_quota",
+    "sample#memory_rss",
+    "sample#memory_swap",
+    "sample#memory_total",
+]
+
+[[metrics]]
+name = "heroku_router"
+matcher = { appname = "heroku", procid = "router" }
+tag_names = ["method", "host", "dyno", "status", "protocol"]
+field_names = ["connect", "service", "bytes"]
+
+[[metrics]]
+name = "heroku_postgres"
+matcher = { procid = "heroku-postgres" }
+tag_names = ["addon", "source"]
+field_names = [
+    "sample#active-connections",
+    "sample#current_transaction",
+    "sample#db_size",
+    "sample#index-cache-hit-rate",
+    "sample#load-avg-15m",
+    "sample#load-avg-1m",
+    "sample#load-avg-5m",
+    "sample#memory-cached",
+    "sample#memory-free",
+    "sample#memory-postgres",
+    "sample#memory-total",
+    "sample#read-iops",
+    "sample#table-cache-hit-rate",
+    "sample#tables",
+    "sample#tmp-disk-available",
+    "sample#tmp-disk-used",
+    "sample#waiting-connections",
+    "sample#wal-percentage-used",
+    "sample#write-iops",
+]
+
+[[metrics]]
+name = "heroku_redis"
+matcher = { procid = "heroku-redis" }
+tag_names = ["addon"]
+field_names = [
+    "sample#active-connections",
+    "sample#evicted-keys",
+    "sample#hit-rate",
+    "sample#load-avg-15m",
+    "sample#load-avg-1m",
+    "sample#load-avg-5m",
+    "sample#memory-cached",
+    "sample#memory-free",
+    "sample#memory-redis",
+    "sample#memory-total",
+    "sample#read-iops",
+    "sample#write-iops",
+]
