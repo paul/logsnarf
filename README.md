@@ -48,7 +48,7 @@ The reference implementation is in Ruby, and has seen production use for several
  * [logsnarf-cr](https://github.com/paul/logsnarf/tree/main/logsnarf-cr) (Oct 2021) Implementation of parser in Crystal. Showed promise in performance, but I felt it exhibited the worst parts of Ruby & Rust, so decided to focus on the Rust implementation instead.
  * [logsnarf-ex](https://github.com/paul/logsnarf/tree/main/logsnarf-ex) (Dec 2019) Implementation in Elixir. I think I struggled with getting access to and learning the low-level server libraries (Rack-equivalent), everything wanted me to work at the web-framework level.
  * [logsnarf-lambda](https://github.com/paul/logsnarf/tree/main/logsnarf-lambda) When AWS announced the "API Gateway", it seemed like a great approach. After trying it, however, it turned out to be cost-prohibitive. Since Heroku makes so many tiny requests, it would cost upwards of $300 per **DAY** to handle the log drain requests from an app with moderate usage. I tried again when AWS dropped their price, and also wrote the lambdas in Rust, but it still was much to expensive to run in production.
- * [logsnarf-go](https://github.com/paul/logsnarf/tree/main/logsnarf-go) (May 2021)
+ * [logsnarf-go](https://github.com/paul/logsnarf/tree/main/logsnarf-go) (May 2021) Implementation in Go. I found writing the parser in Go frustrating, so also took a stab at using ragel to generate the parser for me.
 
 
 
