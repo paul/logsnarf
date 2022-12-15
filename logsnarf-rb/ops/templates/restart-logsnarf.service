@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart logsnarf service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl try-restart logsnarf.service

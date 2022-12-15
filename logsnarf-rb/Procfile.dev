@@ -1,0 +1,3 @@
+web: falcon --verbose serve --count 2
+influx: podman run --rm -p 8086:8086 -v $PWD/influxdb:/var/lib/influxdb influxdb
+caddy2: caddy2
