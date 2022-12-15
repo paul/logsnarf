@@ -1,0 +1,5 @@
+do.logsnarf.com {
+	tls paul@sadauskas.com
+
+	reverse_proxy :8000
+}

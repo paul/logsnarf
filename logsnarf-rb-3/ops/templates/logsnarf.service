@@ -1,0 +1,19 @@
+[Unit]
+Description=Logsnarf App Server
+After=caddy.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/logsnarf/current
+ExecStart=/opt/logsnarf/current/bin/falcon serve --bind http://0.0.0.0:8000
+EnvironmentFile=/opt/logsnarf/current/ops/environments/production.env
+User=logsnarf
+Group=logsnarf
+Restart=always
+; restart every 24 hours
+RuntimeMaxSec=86400
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+
