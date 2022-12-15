@@ -532,6 +532,32 @@ func getTestCases() []testCase {
 				},
 			},
 		},
+		{
+			"heroku missing sd field",
+			"71 <158>1 2019-11-25T18:28:00.089034+00:00 host heroku router - at=info method=GET",
+			// results w/o best effort
+			[]syslog.Result{
+				{
+					Message: (&rfc5424.SyslogMessage{}).
+						SetPriority(6).
+						SetVersion(1).
+						SetTimestamp("2019-11-25T18:28:00.089034Z").
+						SetHostname("host").
+						SetAppname("heroku").
+						SetProcID("router"),
+				},
+			},
+			// results with best effort
+			[]syslog.Result{
+				{
+					Message: (&rfc5424.SyslogMessage{}).
+						SetPriority(1).
+						SetVersion(1).
+						SetTimestamp("2003-10-11T22:14:15.003Z").
+						SetHostname("host.local"),
+				},
+			},
+		},
 	}
 }
 

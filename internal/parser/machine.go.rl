@@ -379,14 +379,14 @@ paramvalue = (utf8charwodelims* escapes*)+ >mark %set_paramvalue;
 
 paramname = sdname >mark %set_paramname;
 
-sdparam = (paramname '=' dq paramvalue dq) >ini_sdparam $err(err_sdparam);
+# sdparam = (paramname '=' dq paramvalue dq) >ini_sdparam $err(err_sdparam);
 
 # (note) > finegrained semantics of section 6.3.2 not represented here since not so useful for parsing goal
-sdid = sdname >mark %set_id %err(set_id) $err(err_sdid);
+# sdid = sdname >mark %set_id %err(set_id) $err(err_sdid);
 
-sdelement = ('[' sdid (sp sdparam)* ']');
+# sdelement = ('[' sdid (sp sdparam)* ']');
 
-structureddata = nilvalue | sdelement+ >ini_elements $err(err_structureddata);
+# structureddata = nilvalue | sdelement+ >ini_elements $err(err_structureddata);
 
 msg_any := any* >mark >markmsg %set_msg $err(err_msg);
 
@@ -399,7 +399,7 @@ msg = any? @select_msg_mode;
 
 fail := (any - [\n\r])* @err{ fgoto main; };
 
-main := header sp structureddata (sp msg)? $err(err_parse);
+main := header (sp msg)? $err(err_parse);
 
 }%%
 

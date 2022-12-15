@@ -5,7 +5,6 @@ import (
 	"io"
 
 	syslog "github.com/influxdata/go-syslog/v3"
-	"github.com/influxdata/go-syslog/v3/rfc5424"
 )
 
 // parser is capable to parse the input stream containing syslog messages with octetcounting framing.
@@ -14,7 +13,7 @@ import (
 type parser struct {
 	msglen     int64
 	s          Scanner
-	internal   syslog.Machine
+	internal   machine
 	last       Token
 	stepback   bool // Wheter to retrieve the last token or not
 	bestEffort bool // Best effort mode flag
@@ -33,9 +32,9 @@ func NewParser(opts ...syslog.ParserOption) syslog.Parser {
 
 	// Create internal parser depending on options
 	if p.bestEffort {
-		p.internal = rfc5424.NewMachine(rfc5424.WithBestEffort())
+		p.internal = NewMachine(syslog.WithBestEffort())
 	} else {
-		p.internal = rfc5424.NewMachine()
+		p.internal = NewMachine()
 	}
 
 	return p
